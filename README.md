@@ -1,4 +1,6 @@
-Miskatino Basic for Arduino Mini (with 2k RAM) v1.1
+**Miskatino Basic for Arduino Mini (with 2k RAM) v1.1**
+
+Just open it in your Arduino IDE and upload to your chip.
 
 It could also be compiled for other Arduinos with sufficient RAM,
 e.g. for Arduino Pro Micro / Leonardo.
