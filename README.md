@@ -2,6 +2,10 @@
 
 Simple implementation of [**BASIC**](https://en.wikipedia.org/wiki/BASIC) programming language to control **Arduino Mini (2k)** or **STM32F103** microcontrollers. It is exposed via serial interface (e.g. UART) and so MCU could be programmed either from computer or smartphone with the help of bluetooth module.
 
+### Supported MCUs
+- Arduino Mini 2k - 700 bytes for code, 300 for variables (also Arduino Micro / Leonardo / Duemilanove etc.) - for demo purpose
+- STM32F103 - code and data could take up to 20 kBytes, 32-bit variables, 100000 lines per second (work in progress)
+
 ### Recognized commands
 
 - `PRINT` - prints integer value or constant string (double-quoted) to serial console
