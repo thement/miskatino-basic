@@ -1,7 +1,20 @@
-# TinyBasic
+# Miskatino Basic
 
-Simple implementation of Basic to controln Arduino Micro or STM32F103 mcus
+Simple implementation of [**BASIC**](https://en.wikipedia.org/wiki/BASIC) programming language to control **Arduino Mini (2k)** or **STM32F103** microcontrollers. It is exposed via serial interface (e.g. UART) and so MCU could be programmed either from computer or smartphone with the help of bluetooth module.
 
+### Recognized commands
+
+- `PRINT` - prints integer value or constant string (double-quoted) to serial console
+- `INPUT` - allows to read integer value
+- `REM` - just a comment line
+- `IF` - conditional execution, i.e. `if x<0; goto 50` (note semicolon instead of "then")
+- `GOTO` - jump to line number
+- `GOSUB` - subroutine call to line number
+- `RETURN` - return from subroutine
+- `END` - stop execution (e.g. end main code to prevent running into subroutine lines)
+- `DIM` - allocate an array (integer or byte)
+- `DATA` - load values to previously allocated array
+- assignment to variables via `X = 5*Y+ADC(3)` form, two first letters of variable are recognized
 
 ### Speed test
 
