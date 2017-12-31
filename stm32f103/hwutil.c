@@ -1,6 +1,6 @@
 #include "stm32f103.h"
 #include "stdlib.h"
-
+#include "params.h"
 #include "../core/utils.h"
 #include "../core/textual.h"
 #include "../core/tokens.h"
@@ -9,6 +9,8 @@
 
 #define STORAGE_START ((64 - 16) * 1024)
 #define STORAGE_PAGE_SIZE 1024
+
+#define STORAGE_READ(p) (REG_B(FLASH_START + STORAGE_START, (p)))
 
 #define uchar unsigned char
 
@@ -358,15 +360,39 @@ static void storageSend(uchar c) {
     storagePos += 1;
 }
 
+unsigned char storageChecksum(short size) {
+    unsigned char res = 0;
+    while (size > 0) {
+        size -= 1;
+        res ^= STORAGE_READ(size);
+    }
+    return res;
+}
+
 char storageOperation(void* data, short size) {
     short i;
     if (data == NULL) {
         if (size) {
             storagePos = 0;
+            if (size > 0) {
+                return 1;
+            }
+            size = (((short) STORAGE_READ(1)) << 8) | STORAGE_READ(0);
+            if (size <= 0 || size >= PROG_SPACE_SIZE) {
+                return 0;
+            }
+            size += 2;
+            return storageChecksum(size + 1) == 0;
         } else {
+            i = storageChecksum(storagePos & ~1);
+            if (storagePos & 1) {
+                i ^= writeOddChar;
+            }
+            storageSend(i);
             if ((storagePos & 1) != 0) {
                 storageSend(0xFF);
             }
+            return 1;
         }
     } else {
         if (size > 0) {
@@ -375,7 +401,7 @@ char storageOperation(void* data, short size) {
             }
         } else {
             for (i = -size -1; i >= 0; i--) {
-                ((uchar*)data)[i] = REG_B(FLASH_START + STORAGE_START, storagePos + i);
+                ((uchar*)data)[i] = STORAGE_READ(storagePos + i);
             }
             storagePos += -size;
         }

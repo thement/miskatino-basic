@@ -186,10 +186,11 @@ char storageOperation(void* data, short size) {
                 return 1;
             }
             size = EEPROM.read(1);
-            size = ((size << 8) | EEPROM.read(0)) + 2;
+            size = ((size << 8) | EEPROM.read(0));
             if (size <= 0 || size >= PROG_SPACE_SIZE) {
                 return 0;
             }
+            size += 2;
             return storageChecksum(size + 1) == 0;
         }
     }

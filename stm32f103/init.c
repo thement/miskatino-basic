@@ -1,13 +1,11 @@
 #include "stm32f103.h"
 #include "hwutil.h"
+#include "params.h"
 #include "../core/main.h"
 
 #define STACK_TOP 0x20005000
 #define CLOCK_SPEED 48
 #define UART_SPEED 115200
-
-#define PROG_SPACE_SIZE 2048
-#define VARS_SPACE_SIZE 512
 
 extern unsigned char  INIT_DATA_VALUES;
 extern unsigned char  INIT_DATA_START;
