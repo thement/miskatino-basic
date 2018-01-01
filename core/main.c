@@ -126,6 +126,30 @@ void executeRun(char* lineBody, token* tokensBody) {
     }
 }
 
+void manualSave(void) {
+    editorSave();
+    outputConstStr(ID_COMMON_STRINGS, 6, NULL); // Saved
+    outputChar(' ');
+    outputInt(prgSize + 2);
+    outputChar(' ');
+    outputConstStr(ID_COMMON_STRINGS, 8, NULL); // bytes
+    outputCr();
+}
+
+void manualLoad(void) {
+    if (editorLoad()) {
+        outputConstStr(ID_COMMON_STRINGS, 7, NULL); // Loaded
+        outputChar(' ');
+        outputInt(prgSize + 2);
+        outputChar(' ');
+        outputConstStr(ID_COMMON_STRINGS, 8, NULL); // bytes
+        outputCr();
+    } else {
+        outputConstStr(ID_COMMON_STRINGS, 9, NULL); // bytes
+        outputCr();
+    }
+}
+
 void prgReset(void) {
     resetEditor();
     resetTokenExecutor();
@@ -154,9 +178,9 @@ void metaOrError(token* t, char* line) {
     } else if (h == 0x1AC) { // RUN
         executeRun(line, t);
     } else if (h == 0x375) { // SAVE
-        editorSave();
+        manualSave();
     } else if (h == 0x39A) { // LOAD
-        editorLoad();
+        manualLoad();
     } else if (h == 0x69A) { // RESET
         prgReset();
     } else if (h == 0x3B3) { // INFO
@@ -191,7 +215,6 @@ void init(char* space, short dataSize) {
     outputCr();
     outputConstStr(ID_COMMON_STRINGS, 0, NULL); // Miskatino vX.X
     outputCr();
-    outputCr();
     initEditor(space + dataSize);
     initTokenExecutor(space, dataSize);
     listLine = 1;
@@ -200,9 +223,14 @@ void init(char* space, short dataSize) {
 
 void preload(char* line, token* t) {
     if (editorLoadParsed(line, t)) {
+        outputConstStr(ID_COMMON_STRINGS, 10, NULL); // code found, autorun message
+        outputCr();
         sysDelay(1000);
         if (sysGetc() < 0) {
             executeParsedRun();
+        } else {
+            outputConstStr(ID_COMMON_STRINGS, 11, NULL); // canceled
+            outputCr();
         }
     }
     prgReset();
