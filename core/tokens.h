@@ -28,6 +28,7 @@
 #define CMD_DIM 10
 #define CMD_DELAY 11
 #define CMD_DATA 12
+#define CMD_EMIT 13
 #define CMD_EXTRA 0x40
 
 #define MAX_LINE_NUMBER 30000

@@ -36,6 +36,8 @@ static short cmdCodeByHash(numeric h) {
             return CMD_DELAY;
         case 0x03CD: // DATA
             return CMD_DATA;
+        case 0x03DA: // EMIT
+            return CMD_EMIT;
         default:
             return extraCommandByHash(h);
     }
@@ -134,10 +136,21 @@ char parseName(char checkCmd) {
     return 1;
 }
 
+char parseChar(void) {
+    if (cur[0] != '\'') {
+        return 0;
+    }
+    curTok->type = TT_NUMBER;
+    curTok->body.integer = ((unsigned char*) cur)[1];
+    cur += 2;
+    advance(cur);
+    return 1;
+}
+
 char parseNumber(void) {
     char base = 10;
     if (!isDigit(*cur)) {
-        return 0;
+        return parseChar();
     }
     curTok->type = TT_NUMBER;
     curTok->body.integer = 0;
@@ -340,6 +353,18 @@ char parseVarList(void) {
     return parseNone();
 }
 
+char parseExprList(void) {
+    if (!parseExpression()) {
+        return 0;
+    }
+    while (*cur != 0) {
+        if (!parseSemicolon() || !parseExpression()) {
+            return 0;
+        }
+    }
+    return parseNone();
+}
+
 char parsePrintList(void) {
     if (!parseExprOrLiteral()) {
         return 0;
@@ -352,9 +377,9 @@ char parsePrintList(void) {
     return parseNone();
 }
 
-char parseNumberList(void) {
+char parseDataList(void) {
     do {
-        if (!parseNumber()) {
+        if (!parseNumber() && !parseLiteral()) {
             setTokenError(cur, 8);
             return 0;
         }
@@ -450,7 +475,9 @@ char parseStatement(void) {
     } else if (cmd == CMD_DELAY) {
         return parseNExpressions(1);
     } else if (cmd == CMD_DATA) {
-        return parseNumberList();
+        return parseDataList();
+    } else if (cmd == CMD_EMIT) {
+        return parseExprList();
     } else if (cmd >= CMD_EXTRA) {
         return parseNExpressions(extraCmdArgCnt[cmd - CMD_EXTRA]);
     }

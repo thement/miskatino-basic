@@ -33,6 +33,7 @@ void execLeta(void);
 void execDim(void);
 void execDelay(void);
 void execData(void);
+void execEmit(void);
 
 void (*executors[])(void) = {
     execRem,
@@ -48,6 +49,7 @@ void (*executors[])(void) = {
     execDim,
     execDelay,
     execData,
+    execEmit,
 };
 
 void resetTokenExecutor(void) {
@@ -328,13 +330,21 @@ void execDim(void) {
 
 void execData(void) {
     char a = (lastDim & 0x1F) | 0x40; // capital letter
+    char i;
     if (a < 'A' || a > 'Z') {
         return;
     }
     do {
-        setArray(a, lastDim >> 5, curTok->body.integer);
+        if (curTok->type == TT_NUMBER) {
+            setArray(a, lastDim >> 5, curTok->body.integer);
+            lastDim += (1 << 5);
+        } else {
+            for (i = 0; i < curTok->body.str.len; i += 1) {
+                setArray(a, lastDim >> 5, curTok->body.str.text[i]);
+                lastDim += (1 << 5);
+            }
+        }
         advance();
-        lastDim += (1 << 5);
     } while (curTok->type != TT_NONE);
 }
 
@@ -380,6 +390,21 @@ void execInput(void) {
                 outputChar(' ');
                 input(s, sizeof(s));
                 setVar(shortVarName(&(curTok->body.str)), decFromStr(s));
+                break;
+        }
+        advance();
+    }
+}
+
+void execEmit(void) {
+    while (1) {
+        switch (curTok->type) {
+            case TT_NONE:
+                return;
+            case TT_SEPARATOR:
+                break;
+            default:
+                outputChar(calcExpression() & 0xFF);
                 break;
         }
         advance();
