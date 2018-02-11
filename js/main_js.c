@@ -1,9 +1,7 @@
-#include <stdio.h>
+#include <emscripten.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <termios.h>
-#include <unistd.h>
-#include <poll.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "../core/main.h"
 #include "../core/utils.h"
@@ -15,41 +13,23 @@ char extraCmdArgCnt[] = {2, 2};
 char extraFuncArgCnt[] = {1, 2};
 
 static char* commonStrings = CONST_COMMON_STRINGS;
-static char * parsingErrors = CONST_PARSING_ERRORS;
+static char* parsingErrors = CONST_PARSING_ERRORS;
 
-char dataSpace[4096];
+#define VARS_SPACE_SIZE 4096
+#define PROG_SPACE_SIZE 1024
 
-static FILE* fCurrent;
-static short idCurrent = 0;
+char dataSpace[VARS_SPACE_SIZE + PROG_SPACE_SIZE];
+
 volatile char interrupted;
 
-static struct termios oldTermSettings;
-
-static void initSystem(void) {
-    struct termios termSettings;
-    tcgetattr(STDIN_FILENO, &oldTermSettings);
-    termSettings = oldTermSettings;
-    termSettings.c_lflag &= ~(ICANON | ECHO | ISIG);
-    tcsetattr(STDIN_FILENO, TCSANOW, &termSettings);
-    setvbuf(stdout, NULL, _IONBF, 0);
-}
-
-static void cleanup(void) {
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldTermSettings);
-}
-
 short sysGetc(void) {
-    struct pollfd fd;
-    fd.fd = STDIN_FILENO;
-    fd.events = POLLIN;
-    if (!poll(&fd, 1, 0)) {
-        return -1;
-    }
-    return getchar();
+    return -1;
 }
 
 void sysPutc(char c) {
-    putchar(c);
+    char s[64];
+    sprintf(s, "jsPutc(%d)", c);
+    emscripten_run_script(s);
 }
 
 void sysEcho(char c) {
@@ -65,8 +45,6 @@ char sysBreak(char v) {
 }
 
 void sysQuit(void) {
-    cleanup();
-    exit(0);
 }
 
 void sysPoke(unsigned long addr, uchar value) {
@@ -78,7 +56,6 @@ uchar sysPeek(unsigned long addr) {
 }
 
 void sysDelay(numeric pause) {
-    usleep(pause * 1000L);
 }
 
 void outputConstStr(char strId, char index, char* w) {
@@ -142,7 +119,6 @@ void extraCommand(char cmd, numeric args[]) {
             sysPoke(args[0], args[1]);
             break;
         case 1:
-            printf("PIN: %d,%d\n", args[0], args[1]);
             break;
     }
 }
@@ -157,42 +133,39 @@ numeric extraFunction(char cmd, numeric args[]) {
     return 0;
 }
 
-static char openStorage(char id, char op) {
-    char fname[] = "store0.dat";
-    char ops[] = "xb";
-    fname[5] += id;
-    ops[0] = op;
-    fCurrent = fopen(fname, ops);
-    return fCurrent != NULL ? 1 : 0;
-}
-
 char storageOperation(void* data, short size) {
-    if (data == NULL) {
-        if (idCurrent != 0) {
-            fclose(fCurrent);
-        }
-        idCurrent = 0;
-        if (size != 0) {
-            idCurrent = abs(size);
-            if (!openStorage(idCurrent, size > 0 ? 'w' : 'r')) {
-                idCurrent = 0;
-                return 0;
-            }
-        }
-        return 1;
-    }
-    if (size > 0) {
-        fwrite(data, size, 1, fCurrent);
-    } else {
-        fread(data, -size, 1, fCurrent);
-    }
     return 1;
 }
 
+char line[MAX_LINE_LEN];
+char toksBody[MAX_LINE_LEN * 2];
+
+extern "C" {
+
+EMSCRIPTEN_KEEPALIVE
+void initBasic() {
+    init(dataSpace, VARS_SPACE_SIZE);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void processBasic(char* s) {
+    strcpy(line, s);
+    processLine(line, (token*)(void*) toksBody);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void inputBasic() {
+    char* s = emscripten_run_script_string("prompt('bla')");
+    strcpy(line, s);
+}
+
+}
+
+/*
 int main(void) {
-    initSystem();
     init(dataSpace, 512);
     dispatch();
     return 0;
 }
+*/
 
