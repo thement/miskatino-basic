@@ -12,6 +12,10 @@ The target hardware is really 32-bit ARM controllers, preferably STM32F103, whic
 - Arduino Mini 2k - 700 bytes for code, 300 for variables (also Arduino Micro / Leonardo / Duemilanove etc.)
 - STM32F103 - code and data could take up to 20 kBytes, 32-bit variables, 100000 lines per second (work in progress)
 
+### Setup
+
+Build the project, upload firmware. Set your communication line (either Bluetooth UART module or USB-UART bridge, like FTDI) to 115200 baud (or change the speed in the code before building). Plug in, press reset - you should see some greeting like `Miskatino v1.0`.
+
 ### Recognized commands and functions
 
 (see more thorough list at [Miskatino Basic Manual](https://github.com/Miskatino/miskatino-basic/wiki/Miskatino-Basic-Manual))
