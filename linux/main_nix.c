@@ -18,6 +18,7 @@ static char* commonStrings = CONST_COMMON_STRINGS;
 static char * parsingErrors = CONST_PARSING_ERRORS;
 
 char dataSpace[4096];
+char lineSpace[80 * 3];
 
 static FILE* fCurrent;
 static short idCurrent = 0;
@@ -53,6 +54,10 @@ void sysPutc(char c) {
 }
 
 void sysEcho(char c) {
+    if (c == '\b') {
+        sysPutc(c);
+        sysPutc(' ');
+    }
     sysPutc(c);
 }
 
@@ -79,6 +84,10 @@ uchar sysPeek(unsigned long addr) {
 
 void sysDelay(numeric pause) {
     usleep(pause * 1000L);
+}
+
+short translateInput(short c) {
+    return c;
 }
 
 void outputConstStr(char strId, char index, char* w) {
@@ -191,8 +200,9 @@ char storageOperation(void* data, short size) {
 
 int main(void) {
     initSystem();
-    init(dataSpace, 512);
-    dispatch();
+    init(512, 80);
+    while(dispatch(translateInput(sysGetc()))) {
+    }
     return 0;
 }
 

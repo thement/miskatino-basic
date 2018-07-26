@@ -3,8 +3,8 @@
 
 #include "mytypes.h"
 
-void init(char* space, short dataSize);
-void dispatch(void);
+void init(short dataSize, short lineSize);
+char dispatch(short inkey);
 void processLine(char* line, token* t);
 
 #endif

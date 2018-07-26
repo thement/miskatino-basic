@@ -6,6 +6,8 @@ extern char extraFuncArgCnt[];
 
 short extraCommandByHash(numeric h);
 short extraFunctionByHash(numeric h);
+extern char dataSpace[];
+extern char lineSpace[];
 
 short sysGetc(void);
 void sysPutc(char c);

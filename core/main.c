@@ -7,6 +7,7 @@
 #include "textual.h"
 
 short listLine, listPage;
+token* toksBody;
 
 #if 0
 void printToken(token* t) {
@@ -194,31 +195,21 @@ void metaOrError(token* t, char* line) {
     }
 }
 
-void processLine(char* line, token* t) {
-    if (line[0] == 0) {
+void processLine() {
+    if (lineSpace[0] == 0) {
         return;
     }
-    parseLine(line, t);
-    printTokens(t);
+    parseLine(lineSpace, toksBody);
+    printTokens(toksBody);
     if (getParseErrorPos() != NULL) {
-        metaOrError(t, line);
+        metaOrError(toksBody, lineSpace);
         return;
     }
-    if (t->type != TT_NUMBER) {
-        executeTokens(t);
+    if (toksBody->type != TT_NUMBER) {
+        executeTokens(toksBody);
     } else {
-        injectLine(skipSpaces(skipDigits(line)), t->body.integer);
+        injectLine(skipSpaces(skipDigits(lineSpace)), toksBody->body.integer);
     }
-}
-
-void init(char* space, short dataSize) {
-    outputCr();
-    outputConstStr(ID_COMMON_STRINGS, 0, NULL); // Miskatino vX.X
-    outputCr();
-    initEditor(space + dataSize);
-    initTokenExecutor(space, dataSize);
-    listLine = 1;
-    listPage = 3;
 }
 
 void preload(char* line, token* t) {
@@ -236,14 +227,24 @@ void preload(char* line, token* t) {
     prgReset();
 }
 
-void dispatch(void) {
-    char line[MAX_LINE_LEN];
-    char toksBody[MAX_LINE_LEN * 2];
-    token* t = (token*)(void*) toksBody;
-    preload(line, t);
-    while (1) {
-        readLine(line);
-        processLine(line, t);
+void init(short dataSize, short lineSize) {
+    outputCr();
+    outputConstStr(ID_COMMON_STRINGS, 0, NULL); // Miskatino vX.X
+    outputCr();
+    initEditor(dataSpace + dataSize);
+    initTokenExecutor(dataSpace, dataSize);
+    listLine = 1;
+    listPage = 3;
+    toksBody = (token*)(void*) (lineSpace + lineSize);
+    preload(lineSpace, toksBody);
+}
+
+char dispatch(short inkey) {
+    if (inkey >= 0) {
+        if (readLine(inkey)) {
+            processLine();
+        }
     }
+    return 1;
 }
 

@@ -6,10 +6,12 @@
 
 char* prgStore;
 short prgSize;
+static char lineSpacePos;
 
 void resetEditor(void) {
     ((prgline*)prgStore)->num = 0;
     prgSize = 2;
+    lineSpacePos = 0;
 }
 
 void initEditor(char* prgBody) {
@@ -17,12 +19,23 @@ void initEditor(char* prgBody) {
     resetEditor();
 }
 
-char readLine(char* line) {
-    if (!input(line, MAX_LINE_LEN)) {
-        return 0;
+char readLine(char inkey) {
+    if (inkey == '\r' || inkey == '\n') {
+        trim(lineSpace);
+        lineSpace[lineSpacePos] = 0;
+        lineSpacePos = 0;
+        sysEcho('\n');
+        return 1;
+    } else if (inkey == '\b' || inkey == 127) {
+        if (lineSpacePos > 0) {
+            inkey = '\b';
+            lineSpacePos -= 1;
+        }
+    } else if (inkey >= ' ') {
+        lineSpace[lineSpacePos++] = inkey;
     }
-    trim(line);
-    return 1;
+    sysEcho(inkey);
+    return 0;
 }
 
 short lineSize(prgline* p) {
