@@ -6,8 +6,9 @@
 #include "extern.h"
 #include "textual.h"
 
-short listLine, listPage;
-token* toksBody;
+static short listLine, listPage;
+static token* toksBody;
+char mainState;
 
 #if 0
 void printToken(token* t) {
@@ -113,6 +114,7 @@ void listProgram(token* t) {
 
 void executeSteps(char* lineBody, token* tokensBody) {
     token* t = nextToken(nextToken(tokensBody));
+    mainState |= STATE_STEPS;
     executeNonParsed(lineBody, tokensBody, t->type == TT_NUMBER ? t->body.integer : 1);
 }
 
@@ -235,14 +237,22 @@ void init(short dataSize, short lineSize) {
     initTokenExecutor(dataSpace, dataSize);
     listLine = 1;
     listPage = 3;
+    mainState = STATE_INTERACTIVE;
     toksBody = (token*)(void*) (lineSpace + lineSize);
     preload(lineSpace, toksBody);
 }
 
 char dispatch(short inkey) {
-    if (inkey >= 0) {
-        if (readLine(inkey)) {
-            processLine();
+    if ((mainState & STATE_STEPS) != 0) {
+        executeNonParsed(lineSpace, toksBody, 0);
+    } else {
+        if (inkey >= 0) {
+            if (inkey == 3) {
+                mainState |= STATE_BREAK;
+            }
+            if (readLine(inkey)) {
+                processLine();
+            }
         }
     }
     return 1;

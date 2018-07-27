@@ -7,7 +7,7 @@
 #include "extern.h"
 #include "textual.h"
 
-#define BREAK_DETECTED() (lastInput == 3)
+extern char mainState;
 
 numeric* calcStack;
 short nextLineNum = 1;
@@ -17,8 +17,9 @@ char numVars;
 short arrayBytes;
 labelCacheElem* labelCache;
 short labelsCached;
-short lastInput;
 numeric lastDim;
+static numeric execStepsCount;
+static short lastInput;
 
 void execRem(void);
 void execPrint(void);
@@ -214,7 +215,7 @@ void calcFunction(nstring* name) {
     if (h == 0x1FF) { // KEY
         i = calcStack[sp];
         calcStack[sp] = lastInput;
-        if (i != 0 && !BREAK_DETECTED()) {
+        if (i != 0) {
             lastInput = -1;
         }
         return;
@@ -501,22 +502,25 @@ void execBreak() {
     outputConstStr(ID_COMMON_STRINGS, 4, NULL); // BREAK
     outputCr();
     sp = spInit;
-    resetLastInput();
 }
 
 void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count) {
-    resetLastInput();
-    while (count != 0) {
-        if (executeStep(lineBuf, tokenBuf)) {
-            break;
-        }
-        if (BREAK_DETECTED()) {
-            execBreak();
-            break;
-        }
-        if (count != -1) {
-            count -= 1;
-        }
+    if (count != 0) {
+        execStepsCount = count;
+        return;
+    }
+    if (execStepsCount != -1) {
+        execStepsCount -= 1;
+    }
+    if (executeStep(lineBuf, tokenBuf)) {
+        execStepsCount = 0;
+    }
+    if ((mainState & STATE_BREAK) != 0) {
+        execStepsCount = 0;
+        execBreak();
+    }
+    if (execStepsCount == 0) {
+        mainState &= ~(STATE_RUN | STATE_STEPS | STATE_BREAK);
     }
 }
 
@@ -541,10 +545,6 @@ void executeParsedRun(void) {
             }
         } else {
             p = next;
-        }
-        if (BREAK_DETECTED()) {
-            execBreak();
-            return;
         }
     }
     signalEndOfCode();
