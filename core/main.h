@@ -4,7 +4,7 @@
 #include "mytypes.h"
 
 void init(short dataSize, short lineSize);
-char dispatch(short inkey);
+void dispatch();
 void processLine(char* line, token* t);
 
 #endif

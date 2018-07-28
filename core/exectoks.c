@@ -19,7 +19,6 @@ labelCacheElem* labelCache;
 short labelsCached;
 numeric lastDim;
 static numeric execStepsCount;
-static short lastInput;
 static numeric delayT0, delayLimit;
 
 void execRem(void);
@@ -217,7 +216,7 @@ void calcFunction(nstring* name) {
         i = calcStack[sp];
         calcStack[sp] = lastInput;
         if (i != 0) {
-            lastInput = -1;
+            lastInput = 0;
         }
         return;
     }
@@ -462,12 +461,6 @@ void execExtra(char cmd) {
     sp += n;
 }
 
-void setLastInput(short c) {
-    if (lastInput == -1 || c == 3) {
-        lastInput = c;
-    }
-}
-
 char executeTokens(token* t) {
     curTok = t;
     while (t->type != TT_NONE) {
@@ -487,9 +480,14 @@ void signalEndOfCode(void) {
     outputCr();
 }
 
+void stopExecution() {
+    mainState &= ~(STATE_RUN | STATE_STEPS | STATE_BREAK);
+}
+
 char executeStep(char* lineBuf, token* tokenBuf) {
     prgline* p = findLine(nextLineNum);
     if (p->num == 0) {
+        stopExecution();
         signalEndOfCode();
         return 1;
     }
@@ -499,14 +497,6 @@ char executeStep(char* lineBuf, token* tokenBuf) {
     parseLine(lineBuf, tokenBuf);
     executeTokens(tokenBuf);
     return 0;
-}
-
-void resetLastInput() {
-    lastInput = -1;
-}
-
-void stopExecution() {
-    mainState &= ~(STATE_RUN | STATE_STEPS | STATE_BREAK);
 }
 
 void dispatchBreak() {
@@ -530,7 +520,6 @@ void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count) {
     }
     if (execStepsCount == 0) {
         stopExecution();
-        signalEndOfCode();
     }
 }
 
@@ -539,7 +528,6 @@ void executeParsedRun(void) {
     prgline* next;
     labelsCached = 0;
     labelCache = (labelCacheElem*)(void*)(prgStore + prgSize);
-    resetLastInput();
     while (1) {
         if (p->num == 0 || nextLineNum == 0) {
             break;

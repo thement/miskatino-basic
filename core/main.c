@@ -242,12 +242,12 @@ void init(short dataSize, short lineSize) {
     preload(lineSpace, toksBody);
 }
 
-void dispatch(short inkey) {
+void dispatch() {
+    if (lastInput == 3) {
+        mainState |= STATE_BREAK;
+    }
     if ((mainState & (STATE_RUN | STATE_SLOWED)) == STATE_RUN) {
         return;
-    }
-    if (inkey == 3) {
-        mainState |= STATE_BREAK;
     }
     switch (mainState & STATE_SLOWED) {
         case STATE_DELAY:
@@ -262,8 +262,8 @@ void dispatch(short inkey) {
     if ((mainState & STATE_STEPS) != 0) {
         executeNonParsed(lineSpace, toksBody, 0);
     } else {
-        if (inkey >= 0) {
-            if (readLine(inkey)) {
+        if (lastInput >= 0) {
+            if (readLine()) {
                 processLine();
             }
         }

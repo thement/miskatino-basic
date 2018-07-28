@@ -8,6 +8,7 @@ short extraCommandByHash(numeric h);
 short extraFunctionByHash(numeric h);
 extern char dataSpace[];
 extern char lineSpace[];
+extern char lastInput;
 
 void sysPutc(char c);
 void sysEcho(char c);

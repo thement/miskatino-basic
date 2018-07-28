@@ -21,9 +21,10 @@ static char * parsingErrors = CONST_PARSING_ERRORS;
 char dataSpace[4096];
 char lineSpace[80 * 3];
 
+char lastInput;
+
 static FILE* fCurrent;
 static short idCurrent = 0;
-volatile char interrupted;
 
 static struct termios oldTermSettings;
 
@@ -62,14 +63,6 @@ void sysEcho(char c) {
     sysPutc(c);
 }
 
-char sysBreak(char v) {
-    if (v == 0) {
-        interrupted = 0;
-        return 0;
-    }
-    return interrupted;
-}
-
 void sysQuit(void) {
     cleanup();
     exit(0);
@@ -89,8 +82,11 @@ numeric sysMillis() {
     return (((numeric) tp.tv_sec) * 1000 + tp.tv_nsec / 1000000) & 0x7FFFFFFF;
 }
 
-short translateInput(short c) {
-    return c;
+char translateInput(short c) {
+    if (c == -1) {
+        c = 0;
+    }
+    return (char) (c & 0xFF);
 }
 
 void outputConstStr(char strId, char index, char* w) {
@@ -205,7 +201,8 @@ int main(void) {
     initSystem();
     init(512, 80);
     while(1) {
-        dispatch(translateInput(sysGetc()));
+        lastInput = translateInput(sysGetc());
+        dispatch();
     }
     return 0;
 }

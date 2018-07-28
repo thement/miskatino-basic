@@ -8,7 +8,7 @@ extern short prgSize;
 
 void resetEditor(void);
 void initEditor(char* prgBody);
-char readLine(char inkey);
+char readLine();
 prgline* findLine(short num);
 void injectLine(char* s, short num);
 char editorSave(void);

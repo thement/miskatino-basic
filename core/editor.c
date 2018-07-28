@@ -19,22 +19,22 @@ void initEditor(char* prgBody) {
     resetEditor();
 }
 
-char readLine(char inkey) {
-    if (inkey == '\r' || inkey == '\n') {
+char readLine() {
+    if (lastInput == '\r' || lastInput == '\n') {
         trim(lineSpace);
         lineSpace[lineSpacePos] = 0;
         lineSpacePos = 0;
         sysEcho('\n');
         return 1;
-    } else if (inkey == '\b' || inkey == 127) {
+    } else if (lastInput == '\b' || lastInput == 127) {
         if (lineSpacePos > 0) {
-            inkey = '\b';
+            lastInput = '\b';
             lineSpacePos -= 1;
         }
-    } else if (inkey >= ' ') {
-        lineSpace[lineSpacePos++] = inkey;
+    } else if (lastInput >= ' ') {
+        lineSpace[lineSpacePos++] = lastInput;
     }
-    sysEcho(inkey);
+    sysEcho(lastInput);
     return 0;
 }
 
