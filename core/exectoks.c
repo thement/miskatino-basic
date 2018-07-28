@@ -20,6 +20,7 @@ short labelsCached;
 numeric lastDim;
 static numeric execStepsCount;
 static short lastInput;
+static numeric delayT0, delayLimit;
 
 void execRem(void);
 void execPrint(void);
@@ -350,7 +351,15 @@ void execData(void) {
 }
 
 void execDelay(void) {
-    sysDelay(calcExpression());
+    delayT0 = sysMillis();
+    delayLimit = calcExpression();
+    mainState |= STATE_DELAY;
+}
+
+void dispatchDelay() {
+    if (sysMillis() - delayT0 > delayLimit) {
+        mainState &= ~STATE_DELAY;
+    }
 }
 
 void execRem(void) {
@@ -389,7 +398,7 @@ void execInput(void) {
             case TT_VARIABLE:
                 outputChar('?');
                 outputChar(' ');
-                input(s, sizeof(s));
+                //input(s, sizeof(s));
                 setVar(shortVarName(&(curTok->body.str)), decFromStr(s));
                 break;
         }
@@ -453,15 +462,13 @@ void execExtra(char cmd) {
     sp += n;
 }
 
-void fetchLastInput(void) {
-    short c = sysGetc();
+void setLastInput(short c) {
     if (lastInput == -1 || c == 3) {
         lastInput = c;
     }
 }
 
 char executeTokens(token* t) {
-    fetchLastInput();
     curTok = t;
     while (t->type != TT_NONE) {
         advance();
@@ -498,10 +505,16 @@ void resetLastInput() {
     lastInput = -1;
 }
 
-void execBreak() {
+void stopExecution() {
+    mainState &= ~(STATE_RUN | STATE_STEPS | STATE_BREAK);
+}
+
+void dispatchBreak() {
+    stopExecution();
+    execStepsCount = 0;
+    sp = spInit;
     outputConstStr(ID_COMMON_STRINGS, 4, NULL); // BREAK
     outputCr();
-    sp = spInit;
 }
 
 void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count) {
@@ -515,12 +528,9 @@ void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count) {
     if (executeStep(lineBuf, tokenBuf)) {
         execStepsCount = 0;
     }
-    if ((mainState & STATE_BREAK) != 0) {
-        execStepsCount = 0;
-        execBreak();
-    }
     if (execStepsCount == 0) {
-        mainState &= ~(STATE_RUN | STATE_STEPS | STATE_BREAK);
+        stopExecution();
+        signalEndOfCode();
     }
 }
 

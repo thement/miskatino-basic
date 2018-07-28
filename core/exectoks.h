@@ -13,6 +13,9 @@ char executeStep(char* lineBuf, token* tokenBuf);
 void execBreak(void);
 void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count);
 void executeParsedRun(void);
+void setLastInput(short c);
+void dispatchDelay();
+void dispatchBreak();
 
 #endif
 

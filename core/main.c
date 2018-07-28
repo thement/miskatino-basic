@@ -218,13 +218,13 @@ void preload(char* line, token* t) {
     if (editorLoadParsed(line, t)) {
         outputConstStr(ID_COMMON_STRINGS, 10, NULL); // code found, autorun message
         outputCr();
-        sysDelay(1000);
-        if (sysGetc() < 0) {
-            executeParsedRun();
-        } else {
+        //sysDelay(1000);
+        //if (sysGetc() < 0) {
+        //    executeParsedRun();
+        //} else {
             outputConstStr(ID_COMMON_STRINGS, 11, NULL); // canceled
             outputCr();
-        }
+        //}
     }
     prgReset();
 }
@@ -242,19 +242,32 @@ void init(short dataSize, short lineSize) {
     preload(lineSpace, toksBody);
 }
 
-char dispatch(short inkey) {
+void dispatch(short inkey) {
+    if ((mainState & (STATE_RUN | STATE_SLOWED)) == STATE_RUN) {
+        return;
+    }
+    if (inkey == 3) {
+        mainState |= STATE_BREAK;
+    }
+    switch (mainState & STATE_SLOWED) {
+        case STATE_DELAY:
+            dispatchDelay();
+            return;
+        case STATE_INPUT:
+            return;
+        case STATE_BREAK:
+            dispatchBreak();
+            return;
+    }
     if ((mainState & STATE_STEPS) != 0) {
         executeNonParsed(lineSpace, toksBody, 0);
     } else {
         if (inkey >= 0) {
-            if (inkey == 3) {
-                mainState |= STATE_BREAK;
-            }
             if (readLine(inkey)) {
                 processLine();
             }
         }
     }
-    return 1;
+    return;
 }
 

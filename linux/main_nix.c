@@ -4,6 +4,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <poll.h>
+#include <time.h>
 
 #include "../core/main.h"
 #include "../core/utils.h"
@@ -82,8 +83,10 @@ uchar sysPeek(unsigned long addr) {
     return dataSpace[addr];
 }
 
-void sysDelay(numeric pause) {
-    usleep(pause * 1000L);
+numeric sysMillis() {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    return (((numeric) tp.tv_sec) * 1000 + tp.tv_nsec / 1000000) & 0x7FFFFFFF;
 }
 
 short translateInput(short c) {
@@ -201,7 +204,8 @@ char storageOperation(void* data, short size) {
 int main(void) {
     initSystem();
     init(512, 80);
-    while(dispatch(translateInput(sysGetc()))) {
+    while(1) {
+        dispatch(translateInput(sysGetc()));
     }
     return 0;
 }
