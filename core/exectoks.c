@@ -8,9 +8,11 @@
 #include "textual.h"
 
 extern char mainState;
+extern token* toksBody;
 
 numeric* calcStack;
 short nextLineNum = 1;
+static prgline* progLine;
 short sp, spInit;
 varHolder* vars;
 char numVars;
@@ -349,14 +351,22 @@ void execData(void) {
     } while (curTok->type != TT_NONE);
 }
 
-void execDelay(void) {
+void setDelay(numeric millis) {
     delayT0 = sysMillis();
-    delayLimit = calcExpression();
+    delayLimit = millis;
+}
+
+void execDelay(void) {
+    setDelay(calcExpression());
     mainState |= STATE_DELAY;
 }
 
+char checkDelay() {
+    return sysMillis() - delayT0 > delayLimit;
+}
+
 void dispatchDelay() {
-    if (sysMillis() - delayT0 > delayLimit) {
+    if (checkDelay()) {
         mainState &= ~STATE_DELAY;
     }
 }
@@ -481,10 +491,13 @@ void signalEndOfCode(void) {
 }
 
 void stopExecution() {
+    if ((mainState & STATE_RUN) != 0) {
+        editorLoad();
+    }
     mainState &= ~(STATE_RUN | STATE_STEPS | STATE_BREAK);
 }
 
-char executeStep(char* lineBuf, token* tokenBuf) {
+char executeStep() {
     prgline* p = findLine(nextLineNum);
     if (p->num == 0) {
         stopExecution();
@@ -492,10 +505,10 @@ char executeStep(char* lineBuf, token* tokenBuf) {
         return 1;
     }
     nextLineNum = p->num + 1;
-    memcpy(lineBuf, p->str.text, p->str.len);
-    lineBuf[p->str.len] = 0;
-    parseLine(lineBuf, tokenBuf);
-    executeTokens(tokenBuf);
+    memcpy(lineSpace, p->str.text, p->str.len);
+    lineSpace[p->str.len] = 0;
+    parseLine(lineSpace, toksBody);
+    executeTokens(toksBody);
     return 0;
 }
 
@@ -507,7 +520,7 @@ void dispatchBreak() {
     outputCr();
 }
 
-void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count) {
+void executeNonParsed(numeric count) {
     if (count != 0) {
         execStepsCount = count;
         return;
@@ -515,7 +528,7 @@ void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count) {
     if (execStepsCount != -1) {
         execStepsCount -= 1;
     }
-    if (executeStep(lineBuf, tokenBuf)) {
+    if (executeStep()) {
         execStepsCount = 0;
     }
     if (execStepsCount == 0) {
@@ -523,28 +536,33 @@ void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count) {
     }
 }
 
-void executeParsedRun(void) {
-    prgline* p = findLine(nextLineNum);
-    prgline* next;
+void initParsedRun(void) {
+    nextLineNum = 1;
+    progLine = findLine(nextLineNum);
     labelsCached = 0;
     labelCache = (labelCacheElem*)(void*)(prgStore + prgSize);
-    while (1) {
-        if (p->num == 0 || nextLineNum == 0) {
-            break;
-        }
-        next = (prgline*)(void*)((char*)(void*)p + sizeof(p->num) + sizeof(p->str.len) + p->str.len);
-        nextLineNum = next->num;
-        executeTokens((token*)(void*)(p->str.text));
-        if (next->num != nextLineNum) {
-            p = getCachedLabel(nextLineNum);
-            if (p == NULL) {
-                p = findLine(nextLineNum);
-                addCachedLabel(nextLineNum, (short)((char*)(void*)p - (char*)(void*)prgStore));
-            }
-        } else {
-            p = next;
-        }
+    mainState |= STATE_RUN;
+}
+
+void executeParsedRun(void) {
+    prgline* next;
+    if (progLine->num == 0 || nextLineNum == 0) {
+        stopExecution();
+        signalEndOfCode();
+        return;
     }
-    signalEndOfCode();
+    next = (prgline*)(void*)((char*)(void*)progLine
+            + sizeof(progLine->num) + sizeof(progLine->str.len) + progLine->str.len);
+    nextLineNum = next->num;
+    executeTokens((token*)(void*)(progLine->str.text));
+    if (next->num != nextLineNum) {
+        progLine = getCachedLabel(nextLineNum);
+        if (progLine == NULL) {
+            progLine = findLine(nextLineNum);
+            addCachedLabel(nextLineNum, (short)((char*)(void*)progLine - (char*)(void*)prgStore));
+        }
+    } else {
+        progLine = next;
+    }
 }
 

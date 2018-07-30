@@ -4,6 +4,7 @@
 #include "tokens.h"
 #include "extern.h"
 
+extern token* toksBody;
 char* prgStore;
 short prgSize;
 static char lineSpacePos;
@@ -92,27 +93,27 @@ char editorLoad(void) {
     return 1;
 }
 
-char editorLoadParsed(char* lineBuf, token* tokenBuf) {
+char editorLoadParsed() {
     void* p = prgStore;
     unsigned char len;
     if (!storageOperation(NULL, -1)) {
         return 0;
     }
-    storageOperation(lineBuf, -2);
+    storageOperation(lineSpace, -2);
     while (1) {
         storageOperation(p, (short) -sizeof(short));
         if (*((short*)p) == 0) {
             break;
         }
-        parseLine(lineBuf, tokenBuf);
+        parseLine(lineSpace, toksBody);
         p = (char*)p + sizeof(short);
         storageOperation(&len, (short) -sizeof(len));
-        storageOperation(lineBuf, -len);
-        lineBuf[len] = 0;
-        parseLine(lineBuf, tokenBuf);
-        len = tokenChainSize(tokenBuf);
+        storageOperation(lineSpace, -len);
+        lineSpace[len] = 0;
+        parseLine(lineSpace, toksBody);
+        len = tokenChainSize(toksBody);
         *((char*)p) = len;
-        memcpy((char*)p + 1, tokenBuf, len);
+        memcpy((char*)p + 1, toksBody, len);
         p = (char*)p + len + 1;
     }
     storageOperation(NULL, 0);

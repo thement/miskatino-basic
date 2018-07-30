@@ -11,11 +11,14 @@ short varSize(void);
 char executeTokens(token* t);
 char executeStep(char* lineBuf, token* tokenBuf);
 void execBreak(void);
-void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count);
+void executeNonParsed(numeric count);
+void initParsedRun(void);
 void executeParsedRun(void);
 void setLastInput(short c);
-void dispatchDelay();
-void dispatchBreak();
+void dispatchDelay(void);
+void setDelay(numeric millis);
+char checkDelay();
+void dispatchBreak(void);
 
 #endif
 

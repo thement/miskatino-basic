@@ -7,7 +7,7 @@
 #include "textual.h"
 
 static short listLine, listPage;
-static token* toksBody;
+token* toksBody;
 char mainState;
 
 #if 0
@@ -112,20 +112,18 @@ void listProgram(token* t) {
     printProgram();
 }
 
-void executeSteps(char* lineBody, token* tokensBody) {
-    token* t = nextToken(nextToken(tokensBody));
+void executeSteps() {
+    token* t = nextToken(nextToken(toksBody));
     mainState |= STATE_STEPS;
-    executeNonParsed(lineBody, tokensBody, t->type == TT_NUMBER ? t->body.integer : 1);
+    executeNonParsed(t->type == TT_NUMBER ? t->body.integer : 1);
 }
 
-void executeRun(char* lineBody, token* tokensBody) {
-    nextLineNum = 1;
+void executeRun() {
     if (editorSave()) {
-        editorLoadParsed(lineBody, tokensBody);
-        executeParsedRun();
-        editorLoad();
+        editorLoadParsed();
+        initParsedRun();
     } else {
-        executeNonParsed(lineBody, tokensBody, -1);
+        executeNonParsed(-1);
     }
 }
 
@@ -170,16 +168,16 @@ void showInfo(void) {
     outputCr();
 }
 
-void metaOrError(token* t, char* line) {
-    numeric h = tokenHash(t);
+void metaOrError() {
+    numeric h = tokenHash(toksBody);
     if (h == 0x31A) { // QUIT
         sysQuit();
     } else if (h == 0x3B6) { // LIST
-        listProgram(t);
+        listProgram(toksBody);
     } else if (h == 0x312) { // STEP
-        executeSteps(line, t);
+        executeSteps();
     } else if (h == 0x1AC) { // RUN
-        executeRun(line, t);
+        executeRun();
     } else if (h == 0x375) { // SAVE
         manualSave();
     } else if (h == 0x39A) { // LOAD
@@ -189,10 +187,10 @@ void metaOrError(token* t, char* line) {
     } else if (h == 0x3B3) { // INFO
         showInfo();
     } else {
-        getParseErrorMsg(line);
-        outputStr(line);
+        getParseErrorMsg(lineSpace);
+        outputStr(lineSpace);
         outputChar(' ');
-        outputInt((long)(getParseErrorPos() - line) + 1);
+        outputInt((long)(getParseErrorPos() - lineSpace) + 1);
         outputCr();
     }
 }
@@ -204,7 +202,7 @@ void processLine() {
     parseLine(lineSpace, toksBody);
     printTokens(toksBody);
     if (getParseErrorPos() != NULL) {
-        metaOrError(toksBody, lineSpace);
+        metaOrError();
         return;
     }
     if (toksBody->type != TT_NUMBER) {
@@ -215,18 +213,14 @@ void processLine() {
 }
 
 void preload(char* line, token* t) {
-    if (editorLoadParsed(line, t)) {
+    if (editorLoadParsed()) {
         outputConstStr(ID_COMMON_STRINGS, 10, NULL); // code found, autorun message
         outputCr();
-        //sysDelay(1000);
-        //if (sysGetc() < 0) {
-        //    executeParsedRun();
-        //} else {
-            outputConstStr(ID_COMMON_STRINGS, 11, NULL); // canceled
-            outputCr();
-        //}
+        setDelay(1000);
+        mainState = STATE_PRELOAD;
+    } else {
+        prgReset();
     }
-    prgReset();
 }
 
 void init(short dataSize, short lineSize) {
@@ -247,6 +241,7 @@ void dispatch() {
         mainState |= STATE_BREAK;
     }
     if ((mainState & (STATE_RUN | STATE_SLOWED)) == STATE_RUN) {
+        executeParsedRun();
         return;
     }
     switch (mainState & STATE_SLOWED) {
@@ -260,7 +255,17 @@ void dispatch() {
             return;
     }
     if ((mainState & STATE_STEPS) != 0) {
-        executeNonParsed(lineSpace, toksBody, 0);
+        executeNonParsed(0);
+    } else if ((mainState & STATE_PRELOAD) != 0) {
+        if (lastInput > 0) {
+            mainState &= ~STATE_PRELOAD;
+            outputConstStr(ID_COMMON_STRINGS, 11, NULL); // canceled
+            outputCr();
+            editorLoad();
+        } else if (checkDelay()) {
+            mainState &= ~STATE_PRELOAD;
+            initParsedRun();
+        }
     } else {
         if (lastInput >= 0) {
             if (readLine()) {

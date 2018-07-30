@@ -174,3 +174,9 @@ numeric hashOfNStr(nstring* t) {
     return res;
 }
 
+void pause(numeric millis) {
+    numeric t0 = sysMillis();
+    while (sysMillis() - t0 < millis) {
+    }
+}
+

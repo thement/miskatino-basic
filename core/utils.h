@@ -17,6 +17,7 @@ char isSpace(char c);
 char toUpper(char c);
 char makeDigit(char c, char base);
 numeric hashOfNStr(nstring* t);
+void pause(numeric millis);
 
 void outputChar(char c);
 void outputStr(char* s);
