@@ -351,6 +351,13 @@ void execData(void) {
     } while (curTok->type != TT_NONE);
 }
 
+void dispatchInput() {
+    if (lastInput >= 0) {
+        if (readLine()) {
+        }
+    }
+}
+
 void setDelay(numeric millis) {
     delayT0 = sysMillis();
     delayLimit = millis;

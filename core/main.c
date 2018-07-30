@@ -236,6 +236,18 @@ void init(short dataSize, short lineSize) {
     preload(lineSpace, toksBody);
 }
 
+void waitPreloadRunDelay() {
+    if (lastInput > 0) {
+        mainState &= ~STATE_PRELOAD;
+        outputConstStr(ID_COMMON_STRINGS, 11, NULL); // canceled
+        outputCr();
+        editorLoad();
+    } else if (checkDelay()) {
+        mainState &= ~STATE_PRELOAD;
+        initParsedRun();
+    }
+}
+
 void dispatch() {
     if (lastInput == 3) {
         mainState |= STATE_BREAK;
@@ -249,6 +261,7 @@ void dispatch() {
             dispatchDelay();
             return;
         case STATE_INPUT:
+            dispatchInput();
             return;
         case STATE_BREAK:
             dispatchBreak();
@@ -257,15 +270,7 @@ void dispatch() {
     if ((mainState & STATE_STEPS) != 0) {
         executeNonParsed(0);
     } else if ((mainState & STATE_PRELOAD) != 0) {
-        if (lastInput > 0) {
-            mainState &= ~STATE_PRELOAD;
-            outputConstStr(ID_COMMON_STRINGS, 11, NULL); // canceled
-            outputCr();
-            editorLoad();
-        } else if (checkDelay()) {
-            mainState &= ~STATE_PRELOAD;
-            initParsedRun();
-        }
+        waitPreloadRunDelay();
     } else {
         if (lastInput >= 0) {
             if (readLine()) {

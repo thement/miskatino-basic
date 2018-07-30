@@ -15,6 +15,7 @@ void executeNonParsed(numeric count);
 void initParsedRun(void);
 void executeParsedRun(void);
 void setLastInput(short c);
+void dispatchInput(void);
 void dispatchDelay(void);
 void setDelay(numeric millis);
 char checkDelay();
