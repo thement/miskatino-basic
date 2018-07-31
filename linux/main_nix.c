@@ -4,11 +4,13 @@
 #include <termios.h>
 #include <unistd.h>
 #include <poll.h>
+#include <time.h>
 
 #include "../core/main.h"
 #include "../core/utils.h"
 #include "../core/textual.h"
 #include "../core/tokens.h"
+#include "../core/extern.h"
 
 char extraCmdArgCnt[] = {2, 2};
 
@@ -18,10 +20,10 @@ static char* commonStrings = CONST_COMMON_STRINGS;
 static char * parsingErrors = CONST_PARSING_ERRORS;
 
 char dataSpace[4096];
+char lineSpace[80 * 3];
 
 static FILE* fCurrent;
 static short idCurrent = 0;
-volatile char interrupted;
 
 static struct termios oldTermSettings;
 
@@ -53,15 +55,11 @@ void sysPutc(char c) {
 }
 
 void sysEcho(char c) {
-    sysPutc(c);
-}
-
-char sysBreak(char v) {
-    if (v == 0) {
-        interrupted = 0;
-        return 0;
+    if (c == '\b') {
+        sysPutc(c);
+        sysPutc(' ');
     }
-    return interrupted;
+    sysPutc(c);
 }
 
 void sysQuit(void) {
@@ -77,8 +75,17 @@ uchar sysPeek(unsigned long addr) {
     return dataSpace[addr];
 }
 
-void sysDelay(numeric pause) {
-    usleep(pause * 1000L);
+numeric sysMillis() {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    return (((numeric) tp.tv_sec) * 1000 + tp.tv_nsec / 1000000) & 0x7FFFFFFF;
+}
+
+char translateInput(short c) {
+    if (c == -1) {
+        c = 0;
+    }
+    return (char) (c & 0xFF);
 }
 
 void outputConstStr(char strId, char index, char* w) {
@@ -191,8 +198,11 @@ char storageOperation(void* data, short size) {
 
 int main(void) {
     initSystem();
-    init(dataSpace, 512);
-    dispatch();
+    init(512, 80);
+    while(1) {
+        lastInput = translateInput(sysGetc());
+        dispatch();
+    }
     return 0;
 }
 

@@ -341,18 +341,6 @@ char parseVar(void) {
     return 1;
 }
 
-char parseVarList(void) {
-    if (!parseVar()) {
-        return 0;
-    }
-    while (*cur != 0) {
-        if (!parseSemicolon() || !parseVar()) {
-            return 0;
-        }
-    }
-    return parseNone();
-}
-
 char parseExprList(void) {
     if (!parseExpression()) {
         return 0;
@@ -467,7 +455,7 @@ char parseStatement(void) {
     } else if (cmd == CMD_PRINT) {
         return parsePrintList();
     } else if (cmd == CMD_INPUT) {
-        return parseVarList();
+        return parseVar() && parseNone();
     } else if (cmd == CMD_IF) {
         return parseConditional();
     } else if (cmd == CMD_DIM) {

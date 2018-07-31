@@ -6,11 +6,13 @@ extern char extraFuncArgCnt[];
 
 short extraCommandByHash(numeric h);
 short extraFunctionByHash(numeric h);
+extern char dataSpace[];
+extern char lineSpace[];
+extern char lastInput;
 
-short sysGetc(void);
 void sysPutc(char c);
 void sysEcho(char c);
-void sysDelay(numeric t);
+numeric sysMillis();
 void extraCommand(char cmd, numeric args[]);
 numeric extraFunction(char cmd, numeric args[]);
 void sysQuit(void);

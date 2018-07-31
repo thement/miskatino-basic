@@ -7,18 +7,21 @@
 #include "extern.h"
 #include "textual.h"
 
-#define BREAK_DETECTED() (lastInput == 3)
+extern char mainState;
+extern token* toksBody;
 
 numeric* calcStack;
 short nextLineNum = 1;
+static prgline* progLine;
 short sp, spInit;
 varHolder* vars;
 char numVars;
 short arrayBytes;
 labelCacheElem* labelCache;
 short labelsCached;
-short lastInput;
 numeric lastDim;
+static numeric execStepsCount;
+static numeric delayT0, delayLimit;
 
 void execRem(void);
 void execPrint(void);
@@ -214,8 +217,8 @@ void calcFunction(nstring* name) {
     if (h == 0x1FF) { // KEY
         i = calcStack[sp];
         calcStack[sp] = lastInput;
-        if (i != 0 && !BREAK_DETECTED()) {
-            lastInput = -1;
+        if (i != 0) {
+            lastInput = 0;
         }
         return;
     }
@@ -348,8 +351,24 @@ void execData(void) {
     } while (curTok->type != TT_NONE);
 }
 
+void setDelay(numeric millis) {
+    delayT0 = sysMillis();
+    delayLimit = millis;
+}
+
 void execDelay(void) {
-    sysDelay(calcExpression());
+    setDelay(calcExpression());
+    mainState |= STATE_DELAY;
+}
+
+char checkDelay() {
+    return sysMillis() - delayT0 > delayLimit;
+}
+
+void dispatchDelay() {
+    if (checkDelay()) {
+        mainState &= ~STATE_DELAY;
+    }
 }
 
 void execRem(void) {
@@ -378,22 +397,22 @@ void execPrint(void) {
 }
 
 void execInput(void) {
-    char s[16];
-    while (1) {
-        switch (curTok->type) {
-            case TT_NONE:
-                return;
-            case TT_SEPARATOR:
-                break;
-            case TT_VARIABLE:
-                outputChar('?');
-                outputChar(' ');
-                input(s, sizeof(s));
-                setVar(shortVarName(&(curTok->body.str)), decFromStr(s));
-                break;
-        }
-        advance();
+    mainState |= STATE_INPUT;
+    outputChar('?');
+    outputChar(curTok->body.str.text[0]);
+    outputChar('=');
+}
+
+void dispatchInput() {
+    if (lastInput == 0) {
+        return;
     }
+    if (!readLine()) {
+        return;
+    }
+    setVar(shortVarName(&(curTok->body.str)), decFromStr(lineSpace));
+    advance();
+    mainState &= ~STATE_INPUT;
 }
 
 void execEmit(void) {
@@ -452,26 +471,20 @@ void execExtra(char cmd) {
     sp += n;
 }
 
-void fetchLastInput(void) {
-    short c = sysGetc();
-    if (lastInput == -1 || c == 3) {
-        lastInput = c;
-    }
-}
-
-char executeTokens(token* t) {
-    fetchLastInput();
+void executeTokens(token* t) {
     curTok = t;
     while (t->type != TT_NONE) {
         advance();
         if (t->body.command < CMD_EXTRA) {
             executors[t->body.command]();
+            if (t->body.command == CMD_INPUT) {
+                break;
+            }
         } else {
             execExtra(t->body.command - CMD_EXTRA);
         }
         t = curTok;
     }
-    return 1;
 }
 
 void signalEndOfCode(void) {
@@ -479,74 +492,79 @@ void signalEndOfCode(void) {
     outputCr();
 }
 
-char executeStep(char* lineBuf, token* tokenBuf) {
+void stopExecution() {
+    if ((mainState & STATE_RUN) != 0) {
+        editorLoad();
+    }
+    mainState &= ~(STATE_RUN | STATE_STEPS | STATE_BREAK);
+}
+
+char executeStep() {
     prgline* p = findLine(nextLineNum);
     if (p->num == 0) {
+        stopExecution();
         signalEndOfCode();
         return 1;
     }
     nextLineNum = p->num + 1;
-    memcpy(lineBuf, p->str.text, p->str.len);
-    lineBuf[p->str.len] = 0;
-    parseLine(lineBuf, tokenBuf);
-    executeTokens(tokenBuf);
+    memcpy(lineSpace, p->str.text, p->str.len);
+    lineSpace[p->str.len] = 0;
+    parseLine(lineSpace, toksBody);
+    executeTokens(toksBody);
     return 0;
 }
 
-void resetLastInput() {
-    lastInput = -1;
-}
-
-void execBreak() {
+void dispatchBreak() {
+    stopExecution();
+    execStepsCount = 0;
+    sp = spInit;
     outputConstStr(ID_COMMON_STRINGS, 4, NULL); // BREAK
     outputCr();
-    sp = spInit;
-    resetLastInput();
 }
 
-void executeNonParsed(char* lineBuf, token* tokenBuf, numeric count) {
-    resetLastInput();
-    while (count != 0) {
-        if (executeStep(lineBuf, tokenBuf)) {
-            break;
-        }
-        if (BREAK_DETECTED()) {
-            execBreak();
-            break;
-        }
-        if (count != -1) {
-            count -= 1;
-        }
+void executeNonParsed(numeric count) {
+    if (count != 0) {
+        execStepsCount = count;
+        return;
     }
+    if (execStepsCount != -1) {
+        execStepsCount -= 1;
+    }
+    if (executeStep()) {
+        execStepsCount = 0;
+    }
+    if (execStepsCount == 0) {
+        stopExecution();
+    }
+}
+
+void initParsedRun(void) {
+    nextLineNum = 1;
+    progLine = findLine(nextLineNum);
+    labelsCached = 0;
+    labelCache = (labelCacheElem*)(void*)(prgStore + prgSize);
+    mainState |= STATE_RUN;
 }
 
 void executeParsedRun(void) {
-    prgline* p = findLine(nextLineNum);
     prgline* next;
-    labelsCached = 0;
-    labelCache = (labelCacheElem*)(void*)(prgStore + prgSize);
-    resetLastInput();
-    while (1) {
-        if (p->num == 0 || nextLineNum == 0) {
-            break;
-        }
-        next = (prgline*)(void*)((char*)(void*)p + sizeof(p->num) + sizeof(p->str.len) + p->str.len);
-        nextLineNum = next->num;
-        executeTokens((token*)(void*)(p->str.text));
-        if (next->num != nextLineNum) {
-            p = getCachedLabel(nextLineNum);
-            if (p == NULL) {
-                p = findLine(nextLineNum);
-                addCachedLabel(nextLineNum, (short)((char*)(void*)p - (char*)(void*)prgStore));
-            }
-        } else {
-            p = next;
-        }
-        if (BREAK_DETECTED()) {
-            execBreak();
-            return;
-        }
+    if (progLine->num == 0 || nextLineNum == 0) {
+        stopExecution();
+        signalEndOfCode();
+        return;
     }
-    signalEndOfCode();
+    next = (prgline*)(void*)((char*)(void*)progLine
+            + sizeof(progLine->num) + sizeof(progLine->str.len) + progLine->str.len);
+    nextLineNum = next->num;
+    executeTokens((token*)(void*)(progLine->str.text));
+    if (next->num != nextLineNum) {
+        progLine = getCachedLabel(nextLineNum);
+        if (progLine == NULL) {
+            progLine = findLine(nextLineNum);
+            addCachedLabel(nextLineNum, (short)((char*)(void*)progLine - (char*)(void*)prgStore));
+        }
+    } else {
+        progLine = next;
+    }
 }
 

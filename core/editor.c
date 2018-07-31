@@ -4,12 +4,16 @@
 #include "tokens.h"
 #include "extern.h"
 
+extern token* toksBody;
 char* prgStore;
 short prgSize;
+static char lineSpacePos;
+char lastInput;
 
 void resetEditor(void) {
     ((prgline*)prgStore)->num = 0;
     prgSize = 2;
+    lineSpacePos = 0;
 }
 
 void initEditor(char* prgBody) {
@@ -17,12 +21,23 @@ void initEditor(char* prgBody) {
     resetEditor();
 }
 
-char readLine(char* line) {
-    if (!input(line, MAX_LINE_LEN)) {
-        return 0;
+char readLine() {
+    if (lastInput == '\r' || lastInput == '\n') {
+        trim(lineSpace);
+        lineSpace[lineSpacePos] = 0;
+        lineSpacePos = 0;
+        sysEcho('\n');
+        return 1;
+    } else if (lastInput == '\b' || lastInput == 127) {
+        if (lineSpacePos > 0) {
+            lastInput = '\b';
+            lineSpacePos -= 1;
+        }
+    } else if (lastInput >= ' ') {
+        lineSpace[lineSpacePos++] = lastInput;
     }
-    trim(line);
-    return 1;
+    sysEcho(lastInput);
+    return 0;
 }
 
 short lineSize(prgline* p) {
@@ -79,27 +94,27 @@ char editorLoad(void) {
     return 1;
 }
 
-char editorLoadParsed(char* lineBuf, token* tokenBuf) {
+char editorLoadParsed() {
     void* p = prgStore;
     unsigned char len;
     if (!storageOperation(NULL, -1)) {
         return 0;
     }
-    storageOperation(lineBuf, -2);
+    storageOperation(lineSpace, -2);
     while (1) {
         storageOperation(p, (short) -sizeof(short));
         if (*((short*)p) == 0) {
             break;
         }
-        parseLine(lineBuf, tokenBuf);
+        parseLine(lineSpace, toksBody);
         p = (char*)p + sizeof(short);
         storageOperation(&len, (short) -sizeof(len));
-        storageOperation(lineBuf, -len);
-        lineBuf[len] = 0;
-        parseLine(lineBuf, tokenBuf);
-        len = tokenChainSize(tokenBuf);
+        storageOperation(lineSpace, -len);
+        lineSpace[len] = 0;
+        parseLine(lineSpace, toksBody);
+        len = tokenChainSize(toksBody);
         *((char*)p) = len;
-        memcpy((char*)p + 1, tokenBuf, len);
+        memcpy((char*)p + 1, toksBody, len);
         p = (char*)p + len + 1;
     }
     storageOperation(NULL, 0);

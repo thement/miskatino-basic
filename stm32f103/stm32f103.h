@@ -6,6 +6,8 @@
 #define REG_L(X,Y) ((long volatile*)((void*)((X) + (Y))))[0]
 
 #define RCC_BASE 0x40021000
+#define PWR_BASE 0x40007000
+#define RTC_BASE 0x40002800
 
 #define AFIO_BASE 0x40010000
 #define GPIOA_BASE 0x40010800
@@ -29,6 +31,16 @@
 #define RCC_AHBENR 0x14
 #define RCC_APB2ENR 0x18
 #define RCC_APB1ENR 0x1C
+#define RCC_BDCR 0x20
+#define RCC_CSR 0x24
+
+#define PWR_CR 0x00
+
+#define RTC_CRL 0x04
+#define RTC_PRLH 0x08
+#define RTC_PRLL 0x0C
+#define RTC_CNTH 0x18
+#define RTC_CNTL 0x1C
 
 #define AFIO_MAPR 0x04
 

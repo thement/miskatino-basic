@@ -6,7 +6,9 @@
 #include "extern.h"
 #include "textual.h"
 
-short listLine, listPage;
+static short listLine, listPage;
+token* toksBody;
+char mainState;
 
 #if 0
 void printToken(token* t) {
@@ -110,19 +112,18 @@ void listProgram(token* t) {
     printProgram();
 }
 
-void executeSteps(char* lineBody, token* tokensBody) {
-    token* t = nextToken(nextToken(tokensBody));
-    executeNonParsed(lineBody, tokensBody, t->type == TT_NUMBER ? t->body.integer : 1);
+void executeSteps() {
+    token* t = nextToken(nextToken(toksBody));
+    mainState |= STATE_STEPS;
+    executeNonParsed(t->type == TT_NUMBER ? t->body.integer : 1);
 }
 
-void executeRun(char* lineBody, token* tokensBody) {
-    nextLineNum = 1;
+void executeRun() {
     if (editorSave()) {
-        editorLoadParsed(lineBody, tokensBody);
-        executeParsedRun();
-        editorLoad();
+        editorLoadParsed();
+        initParsedRun();
     } else {
-        executeNonParsed(lineBody, tokensBody, -1);
+        executeNonParsed(-1);
     }
 }
 
@@ -167,16 +168,16 @@ void showInfo(void) {
     outputCr();
 }
 
-void metaOrError(token* t, char* line) {
-    numeric h = tokenHash(t);
+void metaOrError() {
+    numeric h = tokenHash(toksBody);
     if (h == 0x31A) { // QUIT
         sysQuit();
     } else if (h == 0x3B6) { // LIST
-        listProgram(t);
+        listProgram(toksBody);
     } else if (h == 0x312) { // STEP
-        executeSteps(line, t);
+        executeSteps();
     } else if (h == 0x1AC) { // RUN
-        executeRun(line, t);
+        executeRun();
     } else if (h == 0x375) { // SAVE
         manualSave();
     } else if (h == 0x39A) { // LOAD
@@ -186,64 +187,97 @@ void metaOrError(token* t, char* line) {
     } else if (h == 0x3B3) { // INFO
         showInfo();
     } else {
-        getParseErrorMsg(line);
-        outputStr(line);
+        getParseErrorMsg(lineSpace);
+        outputStr(lineSpace);
         outputChar(' ');
-        outputInt((long)(getParseErrorPos() - line) + 1);
+        outputInt((long)(getParseErrorPos() - lineSpace) + 1);
         outputCr();
     }
 }
 
-void processLine(char* line, token* t) {
-    if (line[0] == 0) {
+void processLine() {
+    if (lineSpace[0] == 0) {
         return;
     }
-    parseLine(line, t);
-    printTokens(t);
+    parseLine(lineSpace, toksBody);
+    printTokens(toksBody);
     if (getParseErrorPos() != NULL) {
-        metaOrError(t, line);
+        metaOrError();
         return;
     }
-    if (t->type != TT_NUMBER) {
-        executeTokens(t);
+    if (toksBody->type != TT_NUMBER) {
+        executeTokens(toksBody);
     } else {
-        injectLine(skipSpaces(skipDigits(line)), t->body.integer);
+        injectLine(skipSpaces(skipDigits(lineSpace)), toksBody->body.integer);
     }
-}
-
-void init(char* space, short dataSize) {
-    outputCr();
-    outputConstStr(ID_COMMON_STRINGS, 0, NULL); // Miskatino vX.X
-    outputCr();
-    initEditor(space + dataSize);
-    initTokenExecutor(space, dataSize);
-    listLine = 1;
-    listPage = 3;
 }
 
 void preload(char* line, token* t) {
-    if (editorLoadParsed(line, t)) {
+    if (editorLoadParsed()) {
         outputConstStr(ID_COMMON_STRINGS, 10, NULL); // code found, autorun message
         outputCr();
-        sysDelay(1000);
-        if (sysGetc() < 0) {
-            executeParsedRun();
-        } else {
-            outputConstStr(ID_COMMON_STRINGS, 11, NULL); // canceled
-            outputCr();
-        }
+        setDelay(1000);
+        mainState = STATE_PRELOAD;
+    } else {
+        prgReset();
     }
-    prgReset();
 }
 
-void dispatch(void) {
-    char line[MAX_LINE_LEN];
-    char toksBody[MAX_LINE_LEN * 2];
-    token* t = (token*)(void*) toksBody;
-    preload(line, t);
-    while (1) {
-        readLine(line);
-        processLine(line, t);
+void init(short dataSize, short lineSize) {
+    outputCr();
+    outputConstStr(ID_COMMON_STRINGS, 0, NULL); // Miskatino vX.X
+    outputCr();
+    initEditor(dataSpace + dataSize);
+    initTokenExecutor(dataSpace, dataSize);
+    listLine = 1;
+    listPage = 3;
+    mainState = STATE_INTERACTIVE;
+    toksBody = (token*)(void*) (lineSpace + lineSize);
+    preload(lineSpace, toksBody);
+}
+
+void waitPreloadRunDelay() {
+    if (lastInput > 0) {
+        mainState &= ~STATE_PRELOAD;
+        outputConstStr(ID_COMMON_STRINGS, 11, NULL); // canceled
+        outputCr();
+        editorLoad();
+    } else if (checkDelay()) {
+        mainState &= ~STATE_PRELOAD;
+        initParsedRun();
     }
+}
+
+void dispatch() {
+    if (lastInput == 3) {
+        mainState |= STATE_BREAK;
+    }
+    if ((mainState & (STATE_RUN | STATE_SLOWED)) == STATE_RUN) {
+        executeParsedRun();
+        return;
+    }
+    switch (mainState & STATE_SLOWED) {
+        case STATE_DELAY:
+            dispatchDelay();
+            return;
+        case STATE_INPUT:
+            dispatchInput();
+            return;
+        case STATE_BREAK:
+            dispatchBreak();
+            return;
+    }
+    if ((mainState & STATE_STEPS) != 0) {
+        executeNonParsed(0);
+    } else if ((mainState & STATE_PRELOAD) != 0) {
+        waitPreloadRunDelay();
+    } else {
+        if (lastInput >= 0) {
+            if (readLine()) {
+                processLine();
+            }
+        }
+    }
+    return;
 }
 
