@@ -351,13 +351,6 @@ void execData(void) {
     } while (curTok->type != TT_NONE);
 }
 
-void dispatchInput() {
-    if (lastInput >= 0) {
-        if (readLine()) {
-        }
-    }
-}
-
 void setDelay(numeric millis) {
     delayT0 = sysMillis();
     delayLimit = millis;
@@ -404,22 +397,22 @@ void execPrint(void) {
 }
 
 void execInput(void) {
-    char s[16];
-    while (1) {
-        switch (curTok->type) {
-            case TT_NONE:
-                return;
-            case TT_SEPARATOR:
-                break;
-            case TT_VARIABLE:
-                outputChar('?');
-                outputChar(' ');
-                //input(s, sizeof(s));
-                setVar(shortVarName(&(curTok->body.str)), decFromStr(s));
-                break;
-        }
-        advance();
+    mainState |= STATE_INPUT;
+    outputChar('?');
+    outputChar(curTok->body.str.text[0]);
+    outputChar('=');
+}
+
+void dispatchInput() {
+    if (lastInput == 0) {
+        return;
     }
+    if (!readLine()) {
+        return;
+    }
+    setVar(shortVarName(&(curTok->body.str)), decFromStr(lineSpace));
+    advance();
+    mainState &= ~STATE_INPUT;
 }
 
 void execEmit(void) {
@@ -478,18 +471,20 @@ void execExtra(char cmd) {
     sp += n;
 }
 
-char executeTokens(token* t) {
+void executeTokens(token* t) {
     curTok = t;
     while (t->type != TT_NONE) {
         advance();
         if (t->body.command < CMD_EXTRA) {
             executors[t->body.command]();
+            if (t->body.command == CMD_INPUT) {
+                break;
+            }
         } else {
             execExtra(t->body.command - CMD_EXTRA);
         }
         t = curTok;
     }
-    return 1;
 }
 
 void signalEndOfCode(void) {
