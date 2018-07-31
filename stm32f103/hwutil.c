@@ -166,6 +166,27 @@ void setupPll(int mhz) {
     }
 }
 
+void setupRealTimeClock(void) {
+    //REG_L(RCC_BASE, RCC_APB1ENR) |= (1 << 27) | (1 << 28);
+    REG_L(RCC_BASE, RCC_CSR) |= 1;
+    while ((REG_L(RCC_BASE, RCC_CSR) & 2) != 2) {
+        __asm("nop");
+    }
+    REG_L(RCC_BASE, RCC_BDCR) |= (2 << 8) | (1 << 15);
+    while ((REG_L(RTC_BASE, RTC_CRL) & (1 << 3)) == 0) {
+        __asm("nop");
+    }
+    while ((REG_L(RTC_BASE, RTC_CRL) & (1 << 5)) == 0) {
+        __asm("nop");
+    }
+    REG_L(RTC_BASE, RTC_DIVL) = 40;
+}
+
+void setupClocks(int mhz) {
+    setupPll(mhz);
+    setupRealTimeClock();
+}
+
 int strlen(const char* s) {
     int i;
     for (i = 0; s[i]; i++) {
@@ -227,10 +248,6 @@ void sysEcho(char c) {
     sysPutc(c);
 }
 
-short sysGetc(void) {
-    return uartRead();
-}
-
 short adcRead(char channel) {
     return 0;
 }
@@ -251,10 +268,14 @@ void pinOut(char pin, schar state) {
     }
 }
 
-void sysDelay(numeric pause) {
-    int i;
-    for (i = 2835 * pause; i > 0; i--) {
-        __asm("nop");
+numeric sysMillis() {
+    unsigned short h1 = REG_L(RTC_BASE, RTC_CNTH);
+    unsigned short lo = REG_L(RTC_BASE, RTC_CNTL);
+    unsigned short h2 = REG_L(RTC_BASE, RTC_CNTH);
+    if (h1 == h2) {
+        return (((long) h1) << 16) | lo;
+    } else {
+        return ((long) h2) << 16;
     }
 }
 

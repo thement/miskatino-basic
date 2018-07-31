@@ -2,6 +2,7 @@
 #include "hwutil.h"
 #include "params.h"
 #include "../core/main.h"
+#include "../core/extern.h"
 
 #define STACK_TOP 0x20005000
 #define CLOCK_SPEED 48
@@ -15,6 +16,7 @@ extern unsigned char  BSS_END;
 extern unsigned char  BSS_END;
 
 char dataSpace[VARS_SPACE_SIZE + PROG_SPACE_SIZE];
+char lineSpace[LINE_SIZE];
 
 int main(void);
 void resetIrqHandler(void);
@@ -50,8 +52,13 @@ void resetIrqHandler(void) {
     main();
 }
 
+char sysGetc(void) {
+    short c = uartRead();
+    return c >= 0 ? (char) c : 0;
+}
+
 int main(void) {
-    setupPll(CLOCK_SPEED);
+    setupClocks(CLOCK_SPEED);
     REG_L(RCC_BASE, RCC_APB2ENR) |= (1 << 2); // ports A
     
     REG_L(FLASH_BASE, FLASH_KEYR) = 0x45670123;
@@ -60,7 +67,13 @@ int main(void) {
     uartEnable(CLOCK_SPEED * 1000000 / UART_SPEED);
     enableInterrupts();
     
-    init(dataSpace, VARS_SPACE_SIZE);
-    dispatch();
+    init(VARS_SPACE_SIZE, LINE_SIZE);
+    while (1) {
+        //lastInput = sysGetc();
+        //dispatch();
+        int v = sysMillis();
+        uartSendDec(v);
+        uartSends("\r\n");
+    }
 }
 

@@ -12,7 +12,7 @@ void uartSend(int c);
 void uartSends(char* s);
 void uartSendHex(int x, int d);
 void uartSendDec(int x);
-void setupPll(int mhz);
+void setupClocks(int mhz);
 void enableInterrupts(void);
 
 #endif
