@@ -10,6 +10,7 @@
 #include "../core/utils.h"
 #include "../core/textual.h"
 #include "../core/tokens.h"
+#include "../core/extern.h"
 
 char extraCmdArgCnt[] = {2, 2};
 
@@ -20,8 +21,6 @@ static char * parsingErrors = CONST_PARSING_ERRORS;
 
 char dataSpace[4096];
 char lineSpace[80 * 3];
-
-char lastInput;
 
 static FILE* fCurrent;
 static short idCurrent = 0;

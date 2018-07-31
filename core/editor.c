@@ -8,6 +8,7 @@ extern token* toksBody;
 char* prgStore;
 short prgSize;
 static char lineSpacePos;
+char lastInput;
 
 void resetEditor(void) {
     ((prgline*)prgStore)->num = 0;
