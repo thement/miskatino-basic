@@ -166,8 +166,15 @@ void setupPll(int mhz) {
     }
 }
 
+void waitRtcWritable() {
+    while ((REG_L(RTC_BASE, RTC_CRL) & (1 << 5)) == 0) {
+        __asm("nop");
+    }
+}
+
 void setupRealTimeClock(void) {
-    //REG_L(RCC_BASE, RCC_APB1ENR) |= (1 << 27) | (1 << 28);
+    REG_L(RCC_BASE, RCC_APB1ENR) |= (1 << 27) | (1 << 28);
+    REG_L(PWR_BASE, PWR_CR) |= (1 << 8);
     REG_L(RCC_BASE, RCC_CSR) |= 1;
     while ((REG_L(RCC_BASE, RCC_CSR) & 2) != 2) {
         __asm("nop");
@@ -176,10 +183,14 @@ void setupRealTimeClock(void) {
     while ((REG_L(RTC_BASE, RTC_CRL) & (1 << 3)) == 0) {
         __asm("nop");
     }
-    while ((REG_L(RTC_BASE, RTC_CRL) & (1 << 5)) == 0) {
-        __asm("nop");
-    }
-    REG_L(RTC_BASE, RTC_DIVL) = 40;
+    waitRtcWritable();
+    REG_L(RTC_BASE, RTC_CRL) |= (1 << 4);
+    REG_L(RTC_BASE, RTC_PRLL) = 40;
+    REG_L(RTC_BASE, RTC_CNTH) = 0;
+    REG_L(RTC_BASE, RTC_CNTL) = 0;
+    REG_L(RTC_BASE, RTC_CRL) &= ~(1 << 4);
+    waitRtcWritable();
+    REG_L(PWR_BASE, PWR_CR) &= ~(1 << 8);
 }
 
 void setupClocks(int mhz) {

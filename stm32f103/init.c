@@ -58,8 +58,8 @@ char sysGetc(void) {
 }
 
 int main(void) {
-    setupClocks(CLOCK_SPEED);
     REG_L(RCC_BASE, RCC_APB2ENR) |= (1 << 2); // ports A
+    setupClocks(CLOCK_SPEED);
     
     REG_L(FLASH_BASE, FLASH_KEYR) = 0x45670123;
     REG_L(FLASH_BASE, FLASH_KEYR) = 0xCDEF89AB;
@@ -69,11 +69,8 @@ int main(void) {
     
     init(VARS_SPACE_SIZE, LINE_SIZE);
     while (1) {
-        //lastInput = sysGetc();
-        //dispatch();
-        int v = sysMillis();
-        uartSendDec(v);
-        uartSends("\r\n");
+        lastInput = sysGetc();
+        dispatch();
     }
 }
 
