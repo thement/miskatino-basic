@@ -1,1 +1,2 @@
 em++ -Wall -Wno-write-strings -Wno-char-subscripts -o tinybas.js -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' main_js.c ../core/*.c
+#docker run --rm -v $(pwd):/src trzeci/emscripten em++ -s WASM=0

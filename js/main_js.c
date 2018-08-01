@@ -23,10 +23,10 @@ static char* parsingErrors = CONST_PARSING_ERRORS;
 char dataSpace[VARS_SPACE_SIZE + PROG_SPACE_SIZE];
 char lineSpace[LINE_SIZE * 3];
 
-volatile char interrupted;
+static char storageOpened = 0;
 
 void sysPutc(char c) {
-    char s[64];
+    char s[32];
     sprintf(s, "jsPutc(%d)", c);
     emscripten_run_script(s);
 }
@@ -125,7 +125,34 @@ numeric extraFunction(char cmd, numeric args[]) {
     return 0;
 }
 
+char storage(int arg) {
+    char s[32];
+    sprintf(s, "storageOp(%d)", arg);
+    return emscripten_run_script_int(s);
+}
+
 char storageOperation(void* data, short size) {
+    int i;
+    if (data == NULL) {
+        if (storageOpened) {
+            storage(-'C');
+            storageOpened = 0;
+        }
+        if (size != 0) {
+            storageOpened = 1;
+            return storage(size > 0 ? -'W' : -'R');
+        }
+        return 1;
+    }
+    if (size > 0) {
+        for (i = 0; i < size; i++) {
+            storage(((unsigned char*) data)[i]);
+        }
+    } else {
+        for (i = 0; i < -size; i++) {
+            ((unsigned char*) data)[i] = storage(-'G');
+        }
+    }
     return 1;
 }
 
