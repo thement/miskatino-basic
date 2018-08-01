@@ -7,6 +7,7 @@
 #include "../core/utils.h"
 #include "../core/textual.h"
 #include "../core/tokens.h"
+#include "../core/extern.h"
 
 char extraCmdArgCnt[] = {2, 2};
 
@@ -15,16 +16,14 @@ char extraFuncArgCnt[] = {1, 2};
 static char* commonStrings = CONST_COMMON_STRINGS;
 static char* parsingErrors = CONST_PARSING_ERRORS;
 
-#define VARS_SPACE_SIZE 4096
-#define PROG_SPACE_SIZE 1024
+#define VARS_SPACE_SIZE 512
+#define PROG_SPACE_SIZE 4096
+#define LINE_SIZE 80
 
 char dataSpace[VARS_SPACE_SIZE + PROG_SPACE_SIZE];
+char lineSpace[LINE_SIZE * 3];
 
 volatile char interrupted;
-
-short sysGetc(void) {
-    return -1;
-}
 
 void sysPutc(char c) {
     char s[64];
@@ -34,14 +33,6 @@ void sysPutc(char c) {
 
 void sysEcho(char c) {
     sysPutc(c);
-}
-
-char sysBreak(char v) {
-    if (v == 0) {
-        interrupted = 0;
-        return 0;
-    }
-    return interrupted;
 }
 
 void sysQuit(void) {
@@ -55,7 +46,8 @@ uchar sysPeek(unsigned long addr) {
     return dataSpace[addr];
 }
 
-void sysDelay(numeric pause) {
+numeric sysMillis(void) {
+    return emscripten_run_script_int("millis()");
 }
 
 void outputConstStr(char strId, char index, char* w) {
@@ -137,35 +129,22 @@ char storageOperation(void* data, short size) {
     return 1;
 }
 
-char line[MAX_LINE_LEN];
-char toksBody[MAX_LINE_LEN * 2];
-
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
 void initBasic() {
-    init(dataSpace, VARS_SPACE_SIZE);
+    init(VARS_SPACE_SIZE, LINE_SIZE);
 }
 
 EMSCRIPTEN_KEEPALIVE
-void processBasic(char* s) {
-    strcpy(line, s);
-    processLine(line, (token*)(void*) toksBody);
-}
-
-EMSCRIPTEN_KEEPALIVE
-void inputBasic() {
-    char* s = emscripten_run_script_string("prompt('bla')");
-    strcpy(line, s);
-}
-
-}
-
-/*
-int main(void) {
-    init(dataSpace, 512);
+void processBasic() {
     dispatch();
-    return 0;
 }
-*/
+
+EMSCRIPTEN_KEEPALIVE
+void inputBasic(int c) {
+    lastInput = (char) (c & 0xFF);
+}
+
+}
 

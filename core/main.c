@@ -262,6 +262,7 @@ void dispatch() {
             return;
         case STATE_INPUT:
             dispatchInput();
+            lastInput = 0;
             return;
         case STATE_BREAK:
             dispatchBreak();
@@ -272,10 +273,11 @@ void dispatch() {
     } else if ((mainState & STATE_PRELOAD) != 0) {
         waitPreloadRunDelay();
     } else {
-        if (lastInput >= 0) {
+        if (lastInput > 0) {
             if (readLine()) {
                 processLine();
             }
+            lastInput = 0;
         }
     }
     return;
