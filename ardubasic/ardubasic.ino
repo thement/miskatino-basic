@@ -77,9 +77,6 @@ uchar peek(short addr) {
     return *((uchar*) addr);
 }
 
-void sysQuit(void) {
-}
-
 numeric sysMillis() {
     return (numeric) millis();
 }

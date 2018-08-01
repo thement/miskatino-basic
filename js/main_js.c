@@ -35,9 +35,6 @@ void sysEcho(char c) {
     sysPutc(c);
 }
 
-void sysQuit(void) {
-}
-
 void sysPoke(unsigned long addr, uchar value) {
     dataSpace[addr] = value;
 }

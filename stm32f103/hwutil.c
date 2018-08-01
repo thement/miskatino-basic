@@ -290,9 +290,6 @@ numeric sysMillis() {
     }
 }
 
-void sysQuit(void) {
-}
-
 void outputConstStr(char strId, char index, char* w) {
     char* s;
     switch (strId) {

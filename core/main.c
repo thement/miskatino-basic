@@ -170,9 +170,7 @@ void showInfo(void) {
 
 void metaOrError() {
     numeric h = tokenHash(toksBody);
-    if (h == 0x31A) { // QUIT
-        sysQuit();
-    } else if (h == 0x3B6) { // LIST
+    if (h == 0x3B6) { // LIST
         listProgram(toksBody);
     } else if (h == 0x312) { // STEP
         executeSteps();

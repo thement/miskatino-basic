@@ -376,12 +376,14 @@ char parseDataList(void) {
 }
 
 char parseNExpressions(char cnt) {
-    if (!parseExpression()) {
-        return 0;
-    }
-    while (--cnt > 0) {
-        if (!parseSemicolon() || !parseExpression()) {
+    if (cnt > 0) {
+        if (!parseExpression()) {
             return 0;
+        }
+        while (--cnt > 0) {
+            if (!parseSemicolon() || !parseExpression()) {
+                return 0;
+            }
         }
     }
     return parseNone();

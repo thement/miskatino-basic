@@ -12,7 +12,7 @@
 #include "../core/tokens.h"
 #include "../core/extern.h"
 
-char extraCmdArgCnt[] = {2, 2};
+char extraCmdArgCnt[] = {2, 2, 0};
 
 char extraFuncArgCnt[] = {1, 2};
 
@@ -127,6 +127,8 @@ short extraCommandByHash(numeric h) {
             return CMD_EXTRA + 0;
         case 0x019C: // PIN - just prints argument values for test
             return CMD_EXTRA + 1;
+        case 0x031A: // QUIT
+            return CMD_EXTRA + 2;
         default:
             return -1;
     }
@@ -150,6 +152,9 @@ void extraCommand(char cmd, numeric args[]) {
             break;
         case 1:
             printf("PIN: %d,%d\n", args[0], args[1]);
+            break;
+        case 2:
+            sysQuit();
             break;
     }
 }

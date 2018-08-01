@@ -15,7 +15,6 @@ void sysEcho(char c);
 numeric sysMillis();
 void extraCommand(char cmd, numeric args[]);
 numeric extraFunction(char cmd, numeric args[]);
-void sysQuit(void);
 void outputConstStr(char strId, char index, char* s);
 
 /* data=NULL for open/close, size > 0 for write,
