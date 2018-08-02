@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="./p5.min.js"></script>
+</head>
+<body>
+
+    <script>
+
+var putHere;
+
+function setup() {
+    createCanvas(640, 480);
+    textFont('Courier New', 40);
+    textStyle(BOLD);
+    putHere = false;
+}
+
+function draw() {
+    if (putHere) {
+        text("" + mouseX + ":" + mouseY, mouseX, mouseY);
+        putHere = false;
+    }
+}
+
+function keyPressed() {
+    putHere = true;
+}
+
+    </script>
+
+</body>
+</html>
+
