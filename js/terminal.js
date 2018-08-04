@@ -2,11 +2,11 @@ var terminal = {
     
     charW: null,
     charH: null,
-    fontSize: 28,
+    fontSize: 20,
     offsX: null,
     offsY: null,
     w: 24,
-    h: 16,
+    h: 24,
     curX: 0,
     curY: 0,
     redraw: true,

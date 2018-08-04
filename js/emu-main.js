@@ -12,9 +12,15 @@ function setup() {
     window.onkeydown = function(e) { 
         return !(e.keyCode == 32 || e.keyCode == 8);
     };
+    window.initTimestamp = new Date().getTime();
+    window.procBas = Module.cwrap('processBasic', 'void', []);
+    window.inputBas = Module.cwrap('inputBasic', 'void', ['number']);
+    _initBasic();
     createCanvas(800, 600);
     shiftPressed = false;
     controlPressed = false;
+    setInterval(procBas, 50);
+    windowResized();
 }
 
 function draw() {
@@ -25,13 +31,20 @@ function draw() {
     }
 }
 
+function windowResized() {
+    var canvas = document.getElementsByTagName('canvas')[0];
+    var scale = min(windowWidth / canvas.width, windowHeight / canvas.height) * 0.95;
+    canvas.style.zoom = '' + scale;
+    document.body.style.marginTop = Math.floor((windowHeight - canvas.height * scale) / 2) + 'px';
+}
+
 function keyPressed() {
     var k = keyCode;
     if (k < 32) {
         switch (k) {
             case ENTER:
             case BACKSPACE:
-                terminal.chars.push(k);
+                onInput(k);
                 break;
             case SHIFT:
                 shiftPressed = true;
@@ -43,17 +56,17 @@ function keyPressed() {
     } else {
         if (k >= keyCodeA && k <= keyCodeZ) {
             if (k == keyCodeC && controlPressed) {
-                terminal.chars.push(3);
+                onInput(3);
             } else {
-                terminal.chars.push(k + (shiftPressed ? 0 : 0x20));
+                onInput(k + (shiftPressed ? 0 : 0x20));
             }
         } else {
             if (shiftPressed && (k in shifted)) {
-                terminal.chars.push(shifted[k].charCodeAt(0));
+                onInput(shifted[k].charCodeAt(0));
             } else if (!shiftPressed && (k in unshifted)) {
-                terminal.chars.push(unshifted[k].charCodeAt(0));
+                onInput(unshifted[k].charCodeAt(0));
             } else {
-                terminal.chars.push(k);
+                onInput(k);
             }
         }
     }
@@ -75,6 +88,53 @@ function addScript(src) {
     s.type = "text/javascript";
     s.src = src;
     document.head.appendChild(s);
+}
+
+function millis() {
+    return (new Date().getTime() - window.initTimestamp) & 0xFFFFFFFF;
+}
+
+function jsPutc(c) {
+    if (c == 10) {
+        c = 13;
+    }
+    terminal.chars.push(c);
+}
+
+function onInput(code) {
+    inputBas(code);
+    procBas();
+}
+
+function storageOp(arg) {
+    if (arg < 0) {
+        switch (String.fromCharCode(-arg)) {
+            case 'W':
+                storageTemp = [];
+                return 1;
+            case 'R':
+                storageTemp = localStorage.getItem('prgStore');
+                if (storageTemp === null) {
+                    return 0;
+                }
+                storageTemp = JSON.parse(storageTemp);
+                storageIdx = 0;
+                return 1;
+            case 'C':
+                localStorage.setItem('prgStore', JSON.stringify(storageTemp));
+                return 1;
+            case 'G':
+                if (typeof(storageTemp) == 'object' && storageIdx < storageTemp.length) {
+                    return storageTemp[storageIdx++];
+                } else {
+                    return 0;
+                }
+            default:
+                return 0;
+        }
+    } else {
+        storageTemp.push(arg);
+    }
 }
 
 addScript('./terminal.js');
