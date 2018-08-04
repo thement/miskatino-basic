@@ -10,7 +10,7 @@ var unshifted = {
 
 function setup() {
     window.onkeydown = function(e) { 
-        return !(e.keyCode == 32);
+        return !(e.keyCode == 32 || e.keyCode == 8);
     };
     createCanvas(800, 600);
     shiftPressed = false;
