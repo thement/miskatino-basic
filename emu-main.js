@@ -1,11 +1,11 @@
 var shiftPressed, controlPressed;
 var keyCodeA = 'A'.charCodeAt(0), keyCodeZ = 'Z'.charCodeAt(0), keyCodeC = 'C'.charCodeAt(0);
 var shifted = {
-    49: '!', 50: '@', 51: '#', 52: '$', 53: '%', 54: '^', 55: '&', 56: '*', 57: '(', 48: ')',
-    189: '_', 187: '+', 219: '{', 221: '}', 186: ':', 222: '"', 220: '|', 188: '<', 190: '>',191: '?', 192: '~'
+    49: '!', 50: '@', 51: '#', 52: '$', 53: '%', 54: '^', 55: '&', 56: '*', 57: '(', 48: ')', 61: '+',
+    189: '_', 173: '_', 187: '+', 219: '{', 221: '}', 186: ':', 222: '"', 220: '|', 188: '<', 190: '>',191: '?', 192: '~'
 };
 var unshifted = {
-    189: '-', 187: '=', 219: '[', 221: ']', 186: ';', 222: '\'', 220: '\\', 188: ',', 190: '.', 191: '/', 192: '`'
+    189: '-', 173: '-', 187: '=', 219: '[', 221: ']', 186: ';', 222: '\'', 220: '\\', 188: ',', 190: '.', 191: '/', 192: '`'
 }
 
 var pinState = [];
@@ -53,6 +53,8 @@ function windowResized() {
     var canvas = document.getElementsByTagName('canvas')[0];
     var scale = min(windowWidth / width, windowHeight / height) * 0.95;
     canvas.style.zoom = '' + scale;
+    canvas.style.MozTransform = 'scale(' + scale + ')';
+    canvas.style.MozTransformOrigin = 'center top';
     document.body.style.marginTop = Math.floor((windowHeight - height * scale) / 2) + 'px';
 }
 
