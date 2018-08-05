@@ -264,6 +264,7 @@ void dispatch() {
             return;
         case STATE_BREAK:
             dispatchBreak();
+            lastInput = 0;
             return;
     }
     if ((mainState & STATE_STEPS) != 0) {

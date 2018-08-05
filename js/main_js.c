@@ -11,7 +11,7 @@
 
 char extraCmdArgCnt[] = {2, 2};
 
-char extraFuncArgCnt[] = {1, 2};
+char extraFuncArgCnt[] = {1, 1, 1};
 
 static char* commonStrings = CONST_COMMON_STRINGS;
 static char* parsingErrors = CONST_PARSING_ERRORS;
@@ -43,8 +43,26 @@ uchar sysPeek(unsigned long addr) {
     return dataSpace[addr];
 }
 
-numeric sysMillis(void) {
-    return emscripten_run_script_int("millis()");
+numeric sysMillis(numeric div) {
+    if (div <= 1) {
+        return emscripten_run_script_int("timeMs()");
+    } else {
+        char s[32];
+        sprintf(s, "timeMs(%d)", div);
+        return emscripten_run_script_int(s);
+    }
+}
+
+void pinOut(int pin, int value) {
+    char s[32];
+    sprintf(s, "pinOut(%d,%d)", pin, value);
+    emscripten_run_script(s);
+}
+
+int pinIn(int pin, int analog) {
+    char s[32];
+    sprintf(s, "pinIn(%d,%d)", pin, analog);
+    return emscripten_run_script_int(s);
 }
 
 void outputConstStr(char strId, char index, char* w) {
@@ -95,8 +113,10 @@ short extraFunctionByHash(numeric h) {
     switch (h) {
         case 0x0355: // PEEK
             return 0;
-        case 0x06FC: // POWER - for test purpose
+        case 0x019C: // PIN
             return 1;
+        case 0x01CF: // ADC
+            return 2;
         default:
             return -1;
     }
@@ -108,6 +128,7 @@ void extraCommand(char cmd, numeric args[]) {
             sysPoke(args[0], args[1]);
             break;
         case 1:
+            pinOut(args[0], args[1]);
             break;
     }
 }
@@ -117,7 +138,9 @@ numeric extraFunction(char cmd, numeric args[]) {
         case 0:
             return sysPeek(args[0]);
         case 1:
-            return power(args[1], args[0]);
+            return pinIn(args[0], 0);
+        case 2:
+            return pinIn(args[0], 1);
     }
     return 0;
 }

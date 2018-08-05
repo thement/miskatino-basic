@@ -222,6 +222,10 @@ void calcFunction(nstring* name) {
         }
         return;
     }
+    if (h == 0xC9) { // MS
+        calcStack[sp] = sysMillis(calcStack[sp]);
+        return;
+    }
     if (h == 0x1D3) { // ABS
         if (calcStack[sp] < 0) {
             calcStack[sp] = -calcStack[sp];
@@ -352,7 +356,7 @@ void execData(void) {
 }
 
 void setDelay(numeric millis) {
-    delayT0 = sysMillis();
+    delayT0 = sysMillis(1);
     delayLimit = millis;
 }
 
@@ -362,7 +366,7 @@ void execDelay(void) {
 }
 
 char checkDelay() {
-    return sysMillis() - delayT0 > delayLimit;
+    return sysMillis(1) - delayT0 > delayLimit;
 }
 
 void dispatchDelay() {

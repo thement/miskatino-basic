@@ -77,8 +77,11 @@ uchar peek(short addr) {
     return *((uchar*) addr);
 }
 
-numeric sysMillis() {
-    return (numeric) millis();
+numeric sysMillis(numeric div) {
+    if (div <= 1) {
+        (numeric) millis();
+    }
+    return (numeric) (millis() / div);
 }
 
 void outputConstStr(char strId, char index, char* w) {

@@ -1,0 +1,1 @@
+~/utils/arduino/arduino --verify --board arduino:avr:mini:cpu=atmega328 --pref build.path=./.out ardubasic.ino

@@ -279,15 +279,17 @@ void pinOut(char pin, schar state) {
     }
 }
 
-numeric sysMillis() {
+numeric sysMillis(numeric div) {
     unsigned short h1 = REG_L(RTC_BASE, RTC_CNTH);
     unsigned short lo = REG_L(RTC_BASE, RTC_CNTL);
     unsigned short h2 = REG_L(RTC_BASE, RTC_CNTH);
+    long v;
     if (h1 == h2) {
-        return (((long) h1) << 16) | lo;
+        v = (((long) h1) << 16) | lo;
     } else {
-        return ((long) h2) << 16;
+        v = ((long) h2) << 16;
     }
+    return (div <= 1) ? v : v / div;
 }
 
 void outputConstStr(char strId, char index, char* w) {

@@ -2,11 +2,15 @@ var shiftPressed, controlPressed;
 var keyCodeA = 'A'.charCodeAt(0), keyCodeZ = 'Z'.charCodeAt(0), keyCodeC = 'C'.charCodeAt(0);
 var shifted = {
     49: '!', 50: '@', 51: '#', 52: '$', 53: '%', 54: '^', 55: '&', 56: '*', 57: '(', 48: ')',
-    189: '_', 187: '+', 219: '{', 221: '}', 186: ':', 222: '"', 220: '|', 188: '<', 190: '>', 191: '?', 192: '~'
+    189: '_', 187: '+', 219: '{', 221: '}', 186: ':', 222: '"', 220: '|', 188: '<', 190: '>',191: '?', 192: '~'
 };
 var unshifted = {
     189: '-', 187: '=', 219: '[', 221: ']', 186: ';', 222: '\'', 220: '\\', 188: ',', 190: '.', 191: '/', 192: '`'
 }
+
+var pinState = [];
+var pinSignal = [];
+var adcSignal = [];
 
 function setup() {
     window.onkeydown = function(e) { 
@@ -16,11 +20,20 @@ function setup() {
     window.procBas = Module.cwrap('processBasic', 'void', []);
     window.inputBas = Module.cwrap('inputBasic', 'void', ['number']);
     _initBasic();
+    setupPins();
     createCanvas(800, 600);
     shiftPressed = false;
     controlPressed = false;
     setInterval(procBas, 50);
     windowResized();
+}
+
+function setupPins() {
+    for (var i = 0; i < 16; i++) {
+        pinState[i] = -1;
+        pinSignal[i] = null;
+        adcSignal[i] = null;
+    }
 }
 
 function draw() {
@@ -90,8 +103,12 @@ function addScript(src) {
     document.head.appendChild(s);
 }
 
-function millis() {
-    return (new Date().getTime() - window.initTimestamp) & 0xFFFFFFFF;
+function timeMs(div) {
+    var v = new Date().getTime() - window.initTimestamp;
+    if (typeof(div) == 'number' && div > 1) {
+        v = Math.floor(v / div);
+    }
+    return v & 0xFFFFFFFF;
 }
 
 function jsPutc(c) {
@@ -99,6 +116,27 @@ function jsPutc(c) {
         c = 13;
     }
     terminal.chars.push(c);
+}
+
+function pinOut(pin, value) {
+    if (pin >= 0 && pin < 16) {
+        pinState[pin] = value;
+    }
+}
+
+function pinIn(pin, analog) {
+    if (pin < 0 || pin > 15) {
+        return 0;
+    }
+    var ps = pinState[pin];
+    if (ps >= 0) {
+        return ps ? 1 : 0;
+    }
+    var pv = pinSignal[pin];
+    if (ps < -1 || pv !== null) {
+        return pv === 0 ? 0 : 1;
+    }
+    return Math.floor(Math.random() * 2);
 }
 
 function onInput(code) {

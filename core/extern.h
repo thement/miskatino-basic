@@ -12,7 +12,7 @@ extern char lastInput;
 
 void sysPutc(char c);
 void sysEcho(char c);
-numeric sysMillis();
+numeric sysMillis(numeric div);
 void extraCommand(char cmd, numeric args[]);
 numeric extraFunction(char cmd, numeric args[]);
 void outputConstStr(char strId, char index, char* s);

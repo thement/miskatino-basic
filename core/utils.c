@@ -175,8 +175,8 @@ numeric hashOfNStr(nstring* t) {
 }
 
 void pause(numeric millis) {
-    numeric t0 = sysMillis();
-    while (sysMillis() - t0 < millis) {
+    numeric t0 = sysMillis(1);
+    while (sysMillis(1) - t0 < millis) {
     }
 }
 

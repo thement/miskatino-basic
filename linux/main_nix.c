@@ -75,10 +75,12 @@ uchar sysPeek(unsigned long addr) {
     return dataSpace[addr];
 }
 
-numeric sysMillis() {
+numeric sysMillis(numeric div) {
     struct timespec tp;
+    long v;
     clock_gettime(CLOCK_REALTIME, &tp);
-    return (((numeric) tp.tv_sec) * 1000 + tp.tv_nsec / 1000000) & 0x7FFFFFFF;
+    v = (((numeric) tp.tv_sec) * 1000 + tp.tv_nsec / 1000000) & 0x7FFFFFFF;
+    return div <= 1 ? v : v / div;
 }
 
 char translateInput(short c) {
