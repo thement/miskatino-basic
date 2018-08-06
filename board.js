@@ -4,6 +4,10 @@ var board = {
     ledCoords: [[74, 454], [118, 454], [162, 454], [206, 454], [250, 454], [294, 454], [337, 454], [380, 454],
             null, null, null, null, null, [372, 324]],
     ledDiam: 12,
+    btnCoords: [[289, 21], [289, 61], [289, 98]],
+    btnWidth: 42,
+    btnHeight: 21,
+    btnDown: null,
     
     pinChanged: [],
     
@@ -44,6 +48,27 @@ var board = {
             }
             ellipse(board.offsX + x, board.offsY + y, d * 2 + 1, d * 2 + 1);
         }
+    },
+    
+    mouse: function(x, y, down) {
+        if (!down) {
+            pinSignal[board.btnDown + 10] = null;
+            board.btnDown = null;
+            return;
+        }
+        for (var b = 0; b < 3; b += 1) {
+            var bx = board.offsX + board.btnCoords[b][0];
+            var by = board.offsY + board.btnCoords[b][1];
+            if (x >= bx && y >= by - board.btnHeight && x < bx + board.btnWidth && y < by) {
+                board.btnPressed(b, bx, by);
+                break;
+            }
+        }
+    },
+    
+    btnPressed: function(b, bx, by) {
+        board.btnDown = b;
+        pinSignal[b + 10] = 0;
     },
 };
 

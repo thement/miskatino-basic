@@ -42,7 +42,7 @@ function setupPins() {
 }
 
 function draw() {
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 30; i++) {
         procBas();
     }
     terminal.draw();
@@ -52,6 +52,7 @@ function draw() {
 function windowResized() {
     var canvas = document.getElementsByTagName('canvas')[0];
     var scale = min(windowWidth / width, windowHeight / height) * 0.95;
+    window.scaleFactor = scale;
     canvas.style.zoom = '' + scale;
     canvas.style.MozTransform = 'scale(' + scale + ')';
     canvas.style.MozTransformOrigin = 'center top';
@@ -101,6 +102,35 @@ function keyReleased() {
             controlPressed = false;
             break;
     }
+}
+
+function mousePressed() {
+    var coords = mouseCoords();
+    if (coords !== null) {
+        terminal.mouse(coords[0], coords[1], 1);
+        board.mouse(coords[0], coords[1], 1);
+    }
+}
+
+function mouseReleased() {
+    var coords = mouseCoords();
+    if (coords !== null) {
+        terminal.mouse(coords[0], coords[1], 0);
+        board.mouse(coords[0], coords[1], 0);
+    }
+}
+
+function mouseCoords() {
+    var x = winMouseX;
+    var y = winMouseY;
+    var w = width * scaleFactor;
+    var h = height * scaleFactor;
+    var wx = windowWidth / 2 - w / 2;
+    var wy = (windowHeight - h) / 2;
+    if (x < wx || y < wy || x > wx + w || y > wy + h) {
+        return null;
+    }
+    return [(x - wx) / scaleFactor, (y - wy) / scaleFactor];
 }
 
 function addScript(src) {

@@ -70,6 +70,9 @@ var terminal = {
             terminal.scroll();
         }
     },
+    
+    mouse: function(x, y, down) {
+    },
 
     scroll: function() {
         var w = terminal.charW * terminal.w;
