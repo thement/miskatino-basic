@@ -4,9 +4,9 @@ var board = {
     ledCoords: [[74, 454], [118, 454], [162, 454], [206, 454], [250, 454], [294, 454], [337, 454], [380, 454],
             null, null, null, null, null, [372, 324]],
     ledDiam: 12,
-    btnCoords: [[289, 21], [289, 61], [289, 98]],
-    btnWidth: 42,
-    btnHeight: 21,
+    btnCoords: [[288, 22], [288, 62], [288, 99]],
+    btnWidth: 44,
+    btnHeight: 20,
     btnDown: null,
     
     pinChanged: [],
@@ -52,8 +52,7 @@ var board = {
     
     mouse: function(x, y, down) {
         if (!down) {
-            pinSignal[board.btnDown + 10] = null;
-            board.btnDown = null;
+            board.btnReleased();
             return;
         }
         for (var b = 0; b < 3; b += 1) {
@@ -67,8 +66,26 @@ var board = {
     },
     
     btnPressed: function(b, bx, by) {
+        var col = get(bx + board.btnWidth / 2, by);
+        fill(col[0], col[1], col[2]);
+        rect(bx - 1, by - board.btnHeight - 1, board.btnWidth + 2, board.btnHeight + 2);
+        fill(0, 0, 0);
+        rect(bx, by - 2, board.btnWidth, 3);
         board.btnDown = b;
         pinSignal[b + 10] = 0;
     },
+
+    btnReleased: function() {
+        if (board.btnDown === null) {
+            return;
+        }
+        var b = board.btnDown;
+        var bx = board.btnCoords[b][0];
+        var by = board.btnCoords[b][1];
+        copy(board.image, bx - 1, by - board.btnHeight - 1, board.btnWidth + 2, board.btnHeight + 2,
+            board.offsX + bx - 1, board.offsY + by - board.btnHeight - 1, board.btnWidth + 2, board.btnHeight + 2);
+        pinSignal[b + 10] = null;
+        board.btnDown = null;
+    }
 };
 
