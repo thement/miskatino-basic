@@ -13,7 +13,7 @@ var pinSignal = [];
 var adcSignal = [];
 
 function preload() {
-    boardImage = loadImage('board.png');
+    board.preload();
 }
 
 function setup() {
@@ -26,10 +26,10 @@ function setup() {
     _initBasic();
     setupPins();
     createCanvas(800, 600);
+    terminal.setup();
+    board.setup();
     shiftPressed = false;
     controlPressed = false;
-    setInterval(procBas, 50);
-    image(boardImage, 380, (height - boardImage.height) / 2);
     windowResized();
 }
 
@@ -42,11 +42,11 @@ function setupPins() {
 }
 
 function draw() {
-    terminal.draw();
-    if (typeof(checked) == 'undefined') {
-        console.log(typeof(terminal));
-        checked = true;
+    for (var i = 0; i < 100; i++) {
+        procBas();
     }
+    terminal.draw();
+    board.draw();
 }
 
 function windowResized() {
@@ -128,6 +128,7 @@ function jsPutc(c) {
 function pinOut(pin, value) {
     if (pin >= 0 && pin < 16) {
         pinState[pin] = value;
+        board.pinChanged[pin] = true;
     }
 }
 
@@ -183,3 +184,5 @@ function storageOp(arg) {
 }
 
 addScript('./terminal.js');
+addScript('./board.js');
+

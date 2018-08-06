@@ -9,11 +9,10 @@ var terminal = {
     h: 24,
     curX: 0,
     curY: 0,
-    redraw: true,
 
     chars: [],
     
-    onRedraw: function() {
+    setup: function() {
         textFont('Courier New', terminal.fontSize);
         textStyle(BOLD);
         terminal.charW = Math.ceil(textWidth('A'));
@@ -30,13 +29,9 @@ var terminal = {
         fill(0, 0, 0);
         rect(terminal.offsX - 1, terminal.offsY - 1,
                 terminal.charW * terminal.w + 2, terminal.charH * terminal.h + 2);
-        terminal.redraw = false;
     },
 
     draw: function() {
-        if (terminal.redraw) {
-            terminal.onRedraw();
-        }
         while (terminal.chars.length > 0) {
             terminal.putc(String.fromCharCode(terminal.chars.shift()));
         }
@@ -101,3 +96,4 @@ var terminal = {
     }
 
 };
+
