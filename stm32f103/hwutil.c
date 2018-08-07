@@ -147,6 +147,14 @@ void uartSendDec(int x) {
     }
 }
 
+void adcEnable(void) {
+    REG_L(RCC_BASE, RCC_APB2ENR) |= (1 << 9); // ADC1 clock
+    REG_L(RCC_BASE, RCC_CFGR) &= ~(3 << 14);
+    REG_L(RCC_BASE, RCC_CFGR) |= (1 << 14); // ADC1 prescaler ABP2clk/4
+    REG_L(ADC1_BASE, ADC_CR2) = 1; // enable ADC1
+    REG_L(ADC1_BASE, ADC_SQR1) = 0; // sequence of 1 measure
+}
+
 void setupPll(int mhz) {
     int boost = mhz / 4 - 2;
     REG_L(RCC_BASE, RCC_CR) &= ~(1 << 24);
@@ -260,7 +268,13 @@ void sysEcho(char c) {
 }
 
 short adcRead(char channel) {
-    return 0;
+    pinMode(GPIOA_BASE, channel, PIN_MODE_IN, PIN_CNF_I_ANA);
+    REG_L(ADC1_BASE, ADC_SQR3) = channel;
+    REG_L(ADC1_BASE, ADC_CR2) = 1;
+    while ((REG_L(ADC1_BASE, ADC_SR) & 2) == 0) {
+        __asm("nop");
+    }
+    return (short) (REG_L(ADC1_BASE, ADC_DR) & 0xFFF);
 }
 
 short pinRead(char pin) {
@@ -338,14 +352,16 @@ short extraCommandByHash(numeric h) {
 
 short extraFunctionByHash(numeric h) {
     switch (h) {
+        case 0x019C: // PIN
+            return 3;
+        case 0x01CF: // ADC
+            return 4;
         case 0x0355: // PEEK
             return 0;
         case 0x0698: // PEEK2
             return 1;
         case 0x069E: // PEEK4
             return 2;
-        case 0x019C: // PIN
-            return 3;
         default:
             return -1;
     }
@@ -378,6 +394,8 @@ numeric extraFunction(char cmd, numeric args[]) {
             return *((unsigned long*)(args[0]));
         case 3:
             return pinRead(args[0]);
+        case 4:
+            return adcRead(args[0]);
     }
     return 0;
 }

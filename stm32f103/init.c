@@ -65,6 +65,7 @@ int main(void) {
     REG_L(FLASH_BASE, FLASH_KEYR) = 0xCDEF89AB;
     
     uartEnable(CLOCK_SPEED * 1000000 / UART_SPEED);
+    adcEnable();
     enableInterrupts();
     
     init(VARS_SPACE_SIZE, LINE_SIZE);

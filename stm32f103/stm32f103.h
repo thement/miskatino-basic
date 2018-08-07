@@ -18,6 +18,8 @@
 #define GPIOF_BASE 0x40011C00
 #define GPIOG_BASE 0x40012000
 
+#define ADC1_BASE 0x40012400
+
 #define USART_BASE 0x40013800
 
 #define NVIC_BASE 0xE000E100
@@ -49,6 +51,14 @@
 #define GPIO_IDR 0x08
 #define GPIO_ODR 0x0C
 #define GPIO_BSRR 0x10
+
+#define ADC_SR 0x00
+#define ADC_CR1 0x04
+#define ADC_CR2 0x08
+#define ADC_SQR1 0x2C
+#define ADC_SQR2 0x30
+#define ADC_SQR3 0x34
+#define ADC_DR 0x4C
 
 #define USART_SR 0x00
 #define USART_DR 0x04
