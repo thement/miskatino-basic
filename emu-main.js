@@ -31,6 +31,17 @@ function setup() {
     shiftPressed = false;
     controlPressed = false;
     windowResized();
+    tryLoadPreset();
+}
+
+function tryLoadPreset() {
+    try {
+        var preset = atob(location.href.replace(/.*\#/, ''));
+        for (var i = 0; i < preset.length; i++) {
+            onInput(preset.charCodeAt(i));
+        }
+    } catch (e) {
+    }
 }
 
 function setupPins() {
