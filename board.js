@@ -4,10 +4,15 @@ var board = {
     ledCoords: [[74, 454], [118, 454], [162, 454], [206, 454], [250, 454], [294, 454], [337, 454], [380, 454],
             null, null, null, null, null, [372, 324]],
     ledDiam: 12,
-    btnCoords: [[288, 22], [288, 62], [288, 99]],
+    btnCoords: [[288, 22], [288, 62], [288, 102]],
     btnWidth: 44,
     btnHeight: 20,
     btnDown: null,
+    knobX: 167,
+    knobY: 74,
+    knobOuter: 44,
+    knobInner: 22,
+    knobMaxA: Math.PI * 8 / 9,
     
     pinChanged: [],
     
@@ -19,6 +24,7 @@ var board = {
         board.offsX = 380; // todo make automatic
         board.offsY = Math.floor((height - board.image.height) / 2);
         image(board.image, board.offsX, board.offsY);
+        board.setKnob(board.offsX + board.knobX, board.offsY + board.knobY - board.knobOuter + 1);
     },
     
     draw: function() {
@@ -54,6 +60,8 @@ var board = {
         if (!down) {
             board.btnReleased();
             return;
+        } else {
+            board.setKnob(x, y);
         }
         for (var b = 0; b < 3; b += 1) {
             var bx = board.offsX + board.btnCoords[b][0];
@@ -70,7 +78,7 @@ var board = {
         fill(col[0], col[1], col[2]);
         rect(bx - 1, by - board.btnHeight - 1, board.btnWidth + 2, board.btnHeight + 2);
         fill(0, 0, 0);
-        rect(bx, by - 2, board.btnWidth, 3);
+        rect(bx - 1, by - 2, board.btnWidth + 2, 3);
         board.btnDown = b;
         pinSignal[b + 10] = 0;
     },
@@ -86,6 +94,29 @@ var board = {
             board.offsX + bx - 1, board.offsY + by - board.btnHeight - 1, board.btnWidth + 2, board.btnHeight + 2);
         pinSignal[b + 10] = null;
         board.btnDown = null;
-    }
+    },
+
+    setKnob(x, y) {
+        var cx = board.offsX + board.knobX;
+        var cy = board.offsY + board.knobY;
+        var dx = x - cx;
+        var dy = y - cy;
+        var d = Math.hypot(dx, dy);
+        if (d < board.knobInner || d > board.knobOuter) {
+            return;
+        }
+        var a = Math.atan2(dx, -dy);
+        if (Math.abs(a) > board.knobMaxA) {
+            a = Math.sign(a) * board.knobMaxA;
+        }
+        adcSignal[3] = Math.floor((-a / board.knobMaxA + 1) / 2.001 * 1024);
+        copy(board.image, board.knobX - board.knobOuter, board.knobY - board.knobOuter,
+                board.knobOuter * 2, board.knobOuter * 2,
+                cx - board.knobOuter, cy - board.knobOuter, board.knobOuter * 2, board.knobOuter * 2);
+        fill(0, 0, 0);
+        var r = (board.knobOuter + board.knobInner) / 2;
+        ellipse(cx + Math.sin(a) * r, cy - Math.cos(a) * r, 7, 7);
+    },
+
 };
 

@@ -37,7 +37,9 @@ function setupPins() {
     for (var i = 0; i < 16; i++) {
         pinState[i] = -1;
         pinSignal[i] = null;
-        adcSignal[i] = null;
+    }
+    for (var j = 0; j < 4; j++) {
+        adcSignal[j] = 512;
     }
 }
 
@@ -163,6 +165,15 @@ function pinOut(pin, value) {
 }
 
 function pinIn(pin, analog) {
+    if (analog) {
+        if (pin >= 0 && pin <= 3) {
+            return adcSignal[pin];
+        } else if (pin == -1) {
+            return 5000 + Math.round(Math.random() * 40) - 20;
+        } else {
+            return 0;
+        }
+    }
     if (pin < 0 || pin > 15) {
         return 0;
     }
