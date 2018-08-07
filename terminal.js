@@ -75,11 +75,10 @@ var terminal = {
     },
 
     scroll: function() {
-        var w = terminal.charW * terminal.w;
-        var h = terminal.charH;
-        for (var line = 1; line < terminal.h; line += 1) {
-            copy(terminal.offsX, terminal.offsY + line * h, w, h, terminal.offsX, terminal.offsY + (line - 1) * h, w, h);
-        }
+        var ctx = canvas.getContext('2d');
+        var data = ctx.getImageData(terminal.offsX, terminal.offsY + terminal.charH,
+                terminal.charW * terminal.w, terminal.charH * (terminal.h - 1));
+        ctx.putImageData(data, terminal.offsX, terminal.offsY);
         fill(0, 0, 0);
         terminal.fillRect(0, terminal.h - 1, terminal.w);
         terminal.curY -= 1;
