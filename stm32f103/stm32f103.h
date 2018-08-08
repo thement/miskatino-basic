@@ -55,6 +55,8 @@
 #define ADC_SR 0x00
 #define ADC_CR1 0x04
 #define ADC_CR2 0x08
+#define ADC_SMPR1 0x0C
+#define ADC_SMPR2 0x10
 #define ADC_SQR1 0x2C
 #define ADC_SQR2 0x30
 #define ADC_SQR3 0x34

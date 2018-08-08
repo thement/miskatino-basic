@@ -23,7 +23,7 @@ unsigned short storagePos;
 
 char extraCmdArgCnt[] = {2, 2, 2, 2};
 
-char extraFuncArgCnt[] = {1, 1, 1, 1};
+char extraFuncArgCnt[] = {1, 1, 1, 1, 1};
 
 static char* commonStrings = CONST_COMMON_STRINGS;
 static char * parsingErrors = CONST_PARSING_ERRORS;
@@ -152,6 +152,7 @@ void adcEnable(void) {
     REG_L(RCC_BASE, RCC_CFGR) &= ~(3 << 14);
     REG_L(RCC_BASE, RCC_CFGR) |= (1 << 14); // ADC1 prescaler ABP2clk/4
     REG_L(ADC1_BASE, ADC_CR2) = 1; // enable ADC1
+    REG_L(ADC1_BASE, ADC_SMPR2) = 044444444;
     REG_L(ADC1_BASE, ADC_SQR1) = 0; // sequence of 1 measure
 }
 
