@@ -207,6 +207,9 @@ void calcOperation(char op) {
         case '|':
             calcStack[sp] = calcStack[sp] || top;
             break;
+        case '^':
+            calcStack[sp] = calcStack[sp] ^ top;
+            break;
     }
 }
 

@@ -94,10 +94,6 @@ void outputConstStr(char strId, char index, char* w) {
     }
 }
 
-static numeric power(numeric base, numeric exp) {
-    return exp < 1 ? 1 : base * power(base, exp - 1);
-}
-
 short extraCommandByHash(numeric h) {
     switch (h) {
         case 0x036F: // POKE

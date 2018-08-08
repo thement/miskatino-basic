@@ -1,7 +1,7 @@
 #ifndef __TEXTUAL_H_
 #define __TEXTUAL_H_
 
-#define CONST_COMMON_STRINGS "Miskatino v1.1\ncode: \nvars: \nnext: \n"\
+#define CONST_COMMON_STRINGS "Miskatino BASIC 1.5\ncode: \nvars: \nnext: \n"\
     "BREAK\nEnd of code\nSaved\nLoaded\nbytes\nLoad failed\n"\
     "Autorun in 1 sec\nCanceled!\n"
 
