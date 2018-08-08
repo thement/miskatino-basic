@@ -212,6 +212,7 @@ char storageOperation(void* data, short size) {
 
 void setup() {
     Serial.begin(UART_SPEED);
+    while (!Serial);
     init(VARS_SPACE_SIZE, LINE_SIZE);
 }
 
