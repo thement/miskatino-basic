@@ -125,6 +125,14 @@ function mousePressed() {
     }
 }
 
+function mouseDragged() {
+    var coords = mouseCoords();
+    if (coords !== null && board.knobEngaged) {
+        board.setKnob(coords[0], coords[1]);
+    }
+
+}
+
 function mouseReleased() {
     var coords = mouseCoords();
     if (coords !== null) {

@@ -1,5 +1,5 @@
 var board = {
-    
+
     image: null,
     ledCoords: [[74, 454], [118, 454], [162, 454], [206, 454], [250, 454], [294, 454], [337, 454], [380, 454],
             null, null, null, null, null, [372, 324]],
@@ -13,20 +13,21 @@ var board = {
     knobOuter: 44,
     knobInner: 22,
     knobMaxA: Math.PI * 8 / 9,
-    
+    knobEngaged: false,
+
     pinChanged: [],
-    
+
     preload: function() {
         board.image = loadImage('board.png');
     },
-    
+
     setup: function() {
         board.offsX = 380; // todo make automatic
         board.offsY = Math.floor((height - board.image.height) / 2);
         image(board.image, board.offsX, board.offsY);
         board.setKnob(board.offsX + board.knobX, board.offsY + board.knobY - board.knobOuter + 1);
     },
-    
+
     draw: function() {
         if (board.pinChanged.length > 0) {
             for (var p in board.pinChanged) {
@@ -35,7 +36,7 @@ var board = {
             board.pinChanged = [];
         }
     },
-    
+
     drawLed(p, state) {
         if (board.ledCoords[p] === null) {
             return;
@@ -55,9 +56,10 @@ var board = {
             ellipse(board.offsX + x, board.offsY + y, d * 2 + 1, d * 2 + 1);
         }
     },
-    
+
     mouse: function(x, y, down) {
         if (!down) {
+            board.knobEngaged = false;
             board.btnReleased();
             return;
         } else {
@@ -72,7 +74,7 @@ var board = {
             }
         }
     },
-    
+
     btnPressed: function(b, bx, by) {
         var col = get(bx + board.btnWidth / 2, by);
         fill(col[0], col[1], col[2]);
@@ -103,8 +105,10 @@ var board = {
         var dy = y - cy;
         var d = Math.hypot(dx, dy);
         if (d < board.knobInner || d > board.knobOuter) {
+            board.knobEngaged = false;
             return;
         }
+        board.knobEngaged = true;
         var a = Math.atan2(dx, -dy);
         if (Math.abs(a) > board.knobMaxA) {
             a = Math.sign(a) * board.knobMaxA;
