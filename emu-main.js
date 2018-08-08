@@ -30,6 +30,12 @@ function setup() {
     board.setup();
     shiftPressed = false;
     controlPressed = false;
+    fill(255, 255, 0);
+    textFont('Arial', terminal.fontSize);
+    textStyle(BOLD);
+    helpZoneX = width - textWidth('HELP');
+    helpZoneY = textAscent();
+    text("HELP", helpZoneX, helpZoneY);
     windowResized();
     tryLoadPreset();
 }
@@ -120,6 +126,9 @@ function keyReleased() {
 function mousePressed() {
     var coords = mouseCoords();
     if (coords !== null) {
+        if (coords[0] > helpZoneX && coords[1] < helpZoneY) {
+            document.getElementById('help').click();
+        }
         terminal.mouse(coords[0], coords[1], 1);
         board.mouse(coords[0], coords[1], 1);
     }
