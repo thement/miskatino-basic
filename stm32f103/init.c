@@ -16,7 +16,7 @@ extern unsigned char  BSS_END;
 extern unsigned char  BSS_END;
 
 char dataSpace[VARS_SPACE_SIZE + PROG_SPACE_SIZE];
-char lineSpace[LINE_SIZE];
+char lineSpace[LINE_SIZE * 3];
 
 int main(void);
 void resetIrqHandler(void);
