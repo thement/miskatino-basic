@@ -47,35 +47,6 @@ char cmpNStrToStr(nstring* ns, char* s) {
     return memcmp(&(ns->text), s, ns->len) == 0;
 }
 
-char input(char* s, short n) {
-    short i = 0;
-    short c;
-    n -= 1;
-    while (i < n) {
-        c = sysGetc();
-        if (c < 0) {
-            continue;
-        }
-        if (c == '\r' || c == '\n') {
-            break;
-        }
-        if (c == '\b' || c == 127) {
-            if (i <= 0) {
-                continue;
-            }
-            c = '\b';
-            i -= 1;
-        }
-        if (c >= ' ') {
-            s[i++] = c;
-        }
-        sysEcho(c);
-    }
-    sysEcho('\n');
-    s[i] = 0;
-    return 1;
-}
-
 void outputChar(char c) {
     sysPutc(c);
 }
@@ -201,5 +172,11 @@ numeric hashOfNStr(nstring* t) {
         i++;
     }
     return res;
+}
+
+void pause(numeric millis) {
+    numeric t0 = sysMillis(1);
+    while (sysMillis(1) - t0 < millis) {
+    }
 }
 

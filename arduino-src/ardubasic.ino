@@ -5,11 +5,13 @@
 #include "mytypes.h"
 #include "textual.h"
 #include "tokens.h"
+#include "extern.h"
 
 #define UART_SPEED 115200
 
 #define PROG_SPACE_SIZE 700
 #define VARS_SPACE_SIZE 300
+#define LINE_SIZE 40
 
 char extraCmdArgCnt[] = {2, 2};
 
@@ -19,11 +21,12 @@ static const char commonStrings[] PROGMEM = CONST_COMMON_STRINGS;
 static const char parsingErrors[] PROGMEM = CONST_PARSING_ERRORS;
 
 char dataSpace[VARS_SPACE_SIZE + PROG_SPACE_SIZE];
+char lineSpace[LINE_SIZE * 3];
 
 short filePtr;
 
-short sysGetc(void) {
-    return Serial.read();
+char sysGetc(void) {
+    return (Serial.available() > 0) ? (char) Serial.read() : 0;
 }
 
 void sysPutc(char c) {
@@ -74,11 +77,11 @@ uchar peek(short addr) {
     return *((uchar*) addr);
 }
 
-void sysQuit(void) {
-}
-
-void sysDelay(numeric pause) {
-    delay(pause);
+numeric sysMillis(numeric div) {
+    if (div <= 1) {
+        (numeric) millis();
+    }
+    return (numeric) (millis() / div);
 }
 
 void outputConstStr(char strId, char index, char* w) {
@@ -186,10 +189,11 @@ char storageOperation(void* data, short size) {
                 return 1;
             }
             size = EEPROM.read(1);
-            size = ((size << 8) | EEPROM.read(0)) + 2;
+            size = ((size << 8) | EEPROM.read(0));
             if (size <= 0 || size >= PROG_SPACE_SIZE) {
                 return 0;
             }
+            size += 2;
             return storageChecksum(size + 1) == 0;
         }
     }
@@ -208,10 +212,12 @@ char storageOperation(void* data, short size) {
 
 void setup() {
     Serial.begin(UART_SPEED);
-    init(dataSpace, VARS_SPACE_SIZE);
+    while (!Serial);
+    init(VARS_SPACE_SIZE, LINE_SIZE);
 }
 
 void loop() {
+    lastInput = sysGetc();
     dispatch();
 }
 

@@ -3,6 +3,15 @@
 
 #define MAX_LINE_LEN 80
 
+#define STATE_INTERACTIVE 0x00
+#define STATE_DELAY 0x01
+#define STATE_INPUT 0x02
+#define STATE_BREAK 0x03
+#define STATE_SLOWED (STATE_DELAY | STATE_INPUT | STATE_BREAK)
+#define STATE_PRELOAD 0x04
+#define STATE_RUN 0x10
+#define STATE_STEPS 0x20
+
 //16 bit for arduino, 32 on stm32 and linux
 typedef signed int numeric;
 
