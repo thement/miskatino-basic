@@ -7,6 +7,7 @@
 #include "tokens.h"
 #include "extern.h"
 
+#define SERIAL Serial
 #define UART_SPEED 115200
 
 #define PROG_SPACE_SIZE 700
@@ -26,17 +27,17 @@ char lineSpace[LINE_SIZE * 3];
 short filePtr;
 
 char sysGetc(void) {
-    return (Serial.available() > 0) ? (char) Serial.read() : 0;
+    return (SERIAL.available() > 0) ? (char) SERIAL.read() : 0;
 }
 
 void sysPutc(char c) {
     if (c == '\n') {
-      Serial.write('\r');
+      SERIAL.write('\r');
     } else if (c == '\b') {
-        Serial.write('\b');
-        Serial.write(' ');
+        SERIAL.write('\b');
+        SERIAL.write(' ');
     }
-    Serial.write(c);
+    SERIAL.write(c);
 }
 
 void sysEcho(char c) {
@@ -181,7 +182,7 @@ char storageOperation(void* data, short size) {
     short i;
     if (data == NULL) {
         if (size == 0) {
-            EEPROM.write(filePtr, storageChecksum(filePtr));
+            EEPROM.write(filePtr, filePtr > 4 ? storageChecksum(filePtr) : 0x55);
             return 1;
         } else {
             filePtr = 0;
@@ -211,8 +212,8 @@ char storageOperation(void* data, short size) {
 }
 
 void setup() {
-    Serial.begin(UART_SPEED);
-    while (!Serial);
+    SERIAL.begin(UART_SPEED);
+    while (!SERIAL);
     init(VARS_SPACE_SIZE, LINE_SIZE);
 }
 

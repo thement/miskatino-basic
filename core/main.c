@@ -131,7 +131,7 @@ void manualSave(void) {
     editorSave();
     outputConstStr(ID_COMMON_STRINGS, 6, NULL); // Saved
     outputChar(' ');
-    outputInt(prgSize + 2);
+    outputInt(prgSize > 2 ? prgSize + 2 : 0);
     outputChar(' ');
     outputConstStr(ID_COMMON_STRINGS, 8, NULL); // bytes
     outputCr();
@@ -228,7 +228,7 @@ void init(short dataSize, short lineSize) {
     initEditor(dataSpace + dataSize);
     initTokenExecutor(dataSpace, dataSize);
     listLine = 1;
-    listPage = 3;
+    listPage = 10;
     mainState = STATE_INTERACTIVE;
     toksBody = (token*)(void*) (lineSpace + lineSize);
     preload(lineSpace, toksBody);

@@ -448,7 +448,7 @@ char storageOperation(void* data, short size) {
             size += 2;
             return storageChecksum(size + 1) == 0;
         } else {
-            i = storageChecksum(storagePos & ~1);
+            i = storagePos > 4 ? storageChecksum(storagePos & ~1) : 0x55;
             if (storagePos & 1) {
                 i ^= writeOddChar;
             }
