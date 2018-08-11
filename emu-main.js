@@ -236,7 +236,14 @@ function storageOp(arg) {
                 storageIdx = 0;
                 return 1;
             case 'C':
-                localStorage.setItem('prgStore', JSON.stringify(storageTemp));
+                if (storageTemp === null) {
+                    return 0;
+                }
+                if (storageTemp.length > 4) {
+                    localStorage.setItem('prgStore', JSON.stringify(storageTemp));
+                } else {
+                    localStorage.removeItem('prgStore');
+                }
                 return 1;
             case 'G':
                 if (typeof(storageTemp) == 'object' && storageIdx < storageTemp.length) {
