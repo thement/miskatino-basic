@@ -1,9 +1,10 @@
 # Miskatino Basic
 
-Simple implementation of [**BASIC**](https://en.wikipedia.org/wiki/BASIC) programming language to control **Arduino Mini (2k)** or **STM32F103** microcontrollers. It is exposed via serial interface (e.g. UART) and so MCU could be programmed either from computer or smartphone with the help of bluetooth module.
+Simple implementation of [**BASIC**](https://en.wikipedia.org/wiki/BASIC) programming language to control **Arduino Mini (2k)** or **STM32F103** microcontrollers. It is exposed via serial interface (e.g. UART) and so MCU could be programmed either from computer or smartphone with the help of bluetooth module. Now you can try it in [**web-emulator**](https://miskatino.github.io/miskatino-basic) also!
 
-_Click the picture for demo video:_  
+_Demo videos - on programming with smartphone and on using web-emulator:_  
 [![Screenshot of a demo video for Miskatino Controller being programmed via Bluetooth with smartphone](https://i.ytimg.com/vi/q9JcWGs_VaI/hqdefault.jpg)](https://www.youtube.com/watch?v=q9JcWGs_VaI)
+[![Screenshot of BASIC for Arduino in web-emulator](https://i.ytimg.com/vi/3CcLqFlPLAU/hqdefault.jpg)](https://www.youtube.com/watch?v=3CcLqFlPLAU)
 
 ### Supported MCUs
 
@@ -15,6 +16,8 @@ The target hardware is really 32-bit ARM controllers, preferably STM32F103, whic
 ### Setup
 
 Build the project, upload firmware. Set your communication line (either Bluetooth UART module or USB-UART bridge, like FTDI) to 115200 baud (or change the speed in the code before building). Plug in, press reset - you should see some greeting like `Miskatino v1.0`.
+
+Alternatively there is [**web-emulator**](https://miskatino.github.io/miskatino-basic) where anyone can play with the project on virtual Arduino Nano board with LEDs, switches and potentiometer.
 
 ### Recognized commands and functions
 
