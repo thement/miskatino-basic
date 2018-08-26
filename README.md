@@ -3,8 +3,8 @@
 Simple implementation of [**BASIC**](https://en.wikipedia.org/wiki/BASIC) programming language to control **Arduino Mini (2k)** or **STM32F103** microcontrollers. It is exposed via serial interface (e.g. UART) and so MCU could be programmed either from computer or smartphone with the help of bluetooth module. Now you can try it in [**web-emulator**](https://miskatino.github.io/miskatino-basic) also!
 
 _Demo videos - on programming with smartphone and on using web-emulator:_  
-[![Screenshot of a demo video for Miskatino Controller being programmed via Bluetooth with smartphone](https://i.ytimg.com/vi/q9JcWGs_VaI/hqdefault.jpg)](https://www.youtube.com/watch?v=q9JcWGs_VaI)
-[![Screenshot of BASIC for Arduino in web-emulator](https://i.ytimg.com/vi/3CcLqFlPLAU/hqdefault.jpg)](https://www.youtube.com/watch?v=3CcLqFlPLAU)
+[![Screenshot of a demo video for Miskatino Controller being programmed via Bluetooth with smartphone](https://i.imgur.com/0Shl33w.png)](https://www.youtube.com/watch?v=q9JcWGs_VaI)
+[![Screenshot of BASIC for Arduino in web-emulator](https://i.imgur.com/sMgJ9OB.png)](https://www.youtube.com/watch?v=3CcLqFlPLAU)
 
 ### Supported MCUs
 
