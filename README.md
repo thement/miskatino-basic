@@ -1,6 +1,6 @@
 # Miskatino Basic
 
-Simple implementation of [**BASIC**](https://en.wikipedia.org/wiki/BASIC) programming language to control **Arduino Mini (2k)** or **STM32F103** microcontrollers. It is exposed via serial interface (e.g. UART) and so MCU could be programmed either from computer or smartphone with the help of bluetooth module. Now you can try it in [**web-emulator**](https://miskatino.github.io/miskatino-basic) also!
+This project was created to simplify teaching electronics in the school. It is a simple implementation of [**BASIC**](https://en.wikipedia.org/wiki/BASIC) programming language to control **Arduino Mini (2k)** or **STM32F103** microcontrollers. It is exposed via serial interface (e.g. UART) and so MCU could be programmed either from computer **or smartphone with the help of bluetooth module**. Now you can try it in [**web-emulator**](https://miskatino.github.io/miskatino-basic) also!
 
 _Demo videos - on programming with smartphone and on using web-emulator:_  
 [![Screenshot of a demo video for Miskatino Controller being programmed via Bluetooth with smartphone](https://i.imgur.com/0Shl33w.png)](https://www.youtube.com/watch?v=q9JcWGs_VaI)
@@ -8,7 +8,7 @@ _Demo videos - on programming with smartphone and on using web-emulator:_
 
 ### Supported MCUs
 
-The target hardware is really 32-bit ARM controllers, preferably STM32F103, which are cheaper than 8-bit Arduinos, but provide over 10 times more memory and 5 (or 10 with quartz) times faster execution, along with 32-bit integers instead of 16-bit. However Arduino port is prepared for demo purposes, while STM32 version is partially incomplete
+The target hardware is really 32-bit ARM controllers, preferably STM32F103, which are cheaper than 8-bit Arduinos, but provide over 10 times more memory and 5 (or 10 with quartz) times faster execution, along with 32-bit integers instead of 16-bit. In future the project is supposed to be extended to cover LPC13xx and LPC21xx chips of NXP and probably Raspberry Pi.
 
 - Arduino Mini 2k - 700 bytes for code, 300 for variables (also Arduino Micro / Leonardo / Duemilanove etc.)
 - STM32F103 - code and data could take up to 20 kBytes, 32-bit variables, 100000 lines per second (work in progress)
