@@ -26,6 +26,7 @@ function setup() {
     _initBasic();
     setupPins();
     createCanvas(800, 600);
+    pixelDensity(1);
     terminal.setup();
     board.setup();
     shiftPressed = false;
