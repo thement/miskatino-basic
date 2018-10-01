@@ -77,7 +77,7 @@ var terminal = {
     scroll: function() {
         var data = get(terminal.offsX, terminal.offsY + terminal.charH,
                 terminal.charW * terminal.w, terminal.charH * (terminal.h - 1));
-        put(data, terminal.offsX, terminal.offsY);
+        set(terminal.offsX, terminal.offsY, data);
         fill(0, 0, 0);
         terminal.fillRect(0, terminal.h - 1, terminal.w);
         terminal.curY -= 1;
