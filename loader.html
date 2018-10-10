@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+    <title>Miskatino Emulator Loader</title>
+    <style>
+        body {
+            text-align: center
+        }
+    </style>
+</head>
+<body>
+    <textarea id="input" cols="40" rows="25"></textarea>
+    <br/><br/>
+    <button id="btn">Let's Go!</button>
+
+    <script>
+    document.getElementById('btn').onclick = function() {
+        var text = document.getElementById('input').value;
+        var coded = btoa('\r\n' + text);
+        window.open('./index.html#' + coded);
+    };
+    </script>
+</body>
+</html>
