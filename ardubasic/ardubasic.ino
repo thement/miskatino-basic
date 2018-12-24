@@ -10,8 +10,8 @@
 #define SERIAL Serial
 #define UART_SPEED 115200
 
-#define PROG_SPACE_SIZE 700
-#define VARS_SPACE_SIZE 300
+#define PROG_SPACE_SIZE 850
+#define VARS_SPACE_SIZE 150
 #define LINE_SIZE 40
 
 char extraCmdArgCnt[] = {2, 2};
@@ -211,8 +211,19 @@ char storageOperation(void* data, short size) {
     return 1;
 }
 
+void optionalProgramErase() {
+    pinMode(0, INPUT_PULLUP);
+    delay(50);
+    if (digitalRead(0) == LOW) {
+        EEPROM.write(0, 0);
+        EEPROM.write(0, 1);
+    }
+}
+
 void setup() {
+    optionalProgramErase();
     SERIAL.begin(UART_SPEED);
+    pinMode(0, INPUT_PULLUP);
     while (!SERIAL);
     init(VARS_SPACE_SIZE, LINE_SIZE);
 }
