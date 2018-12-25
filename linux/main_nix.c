@@ -12,6 +12,10 @@
 #include "../core/tokens.h"
 #include "../core/extern.h"
 
+#define VARS_SPACE_SIZE 512
+#define DATA_SPACE_SIZE 4096
+#define LINE_SIZE 80
+
 char extraCmdArgCnt[] = {2, 2, 0};
 
 char extraFuncArgCnt[] = {1, 2};
@@ -19,8 +23,8 @@ char extraFuncArgCnt[] = {1, 2};
 static char* commonStrings = CONST_COMMON_STRINGS;
 static char * parsingErrors = CONST_PARSING_ERRORS;
 
-char dataSpace[4096];
-char lineSpace[80 * 3];
+char dataSpace[DATA_SPACE_SIZE];
+char lineSpace[LINE_SIZE * 3];
 
 static FILE* fCurrent;
 static short idCurrent = 0;
@@ -205,7 +209,7 @@ char storageOperation(void* data, short size) {
 
 int main(void) {
     initSystem();
-    init(512, 80);
+    init(VARS_SPACE_SIZE, 80, sizeof(dataSpace) - VARS_SPACE_SIZE);
     while(1) {
         lastInput = translateInput(sysGetc());
         dispatch();

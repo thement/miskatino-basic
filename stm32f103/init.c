@@ -68,7 +68,7 @@ int main(void) {
     adcEnable();
     enableInterrupts();
     
-    init(VARS_SPACE_SIZE, LINE_SIZE);
+    init(VARS_SPACE_SIZE, LINE_SIZE, PROG_SPACE_SIZE);
     while (1) {
         lastInput = sysGetc();
         dispatch();

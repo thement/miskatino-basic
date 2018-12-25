@@ -225,7 +225,7 @@ void setup() {
     SERIAL.begin(UART_SPEED);
     pinMode(0, INPUT_PULLUP);
     while (!SERIAL);
-    init(VARS_SPACE_SIZE, LINE_SIZE);
+    init(VARS_SPACE_SIZE, LINE_SIZE, PROG_SPACE_SIZE);
 }
 
 void loop() {

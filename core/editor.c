@@ -3,10 +3,12 @@
 #include "utils.h"
 #include "tokens.h"
 #include "extern.h"
+#include "textual.h"
 
 extern token* toksBody;
 char* prgStore;
 short prgSize;
+static short maxProgSize;
 static char lineSpacePos;
 char lastInput;
 
@@ -16,7 +18,8 @@ void resetEditor(void) {
     lineSpacePos = 0;
 }
 
-void initEditor(char* prgBody) {
+void initEditor(char* prgBody, short progSpaceSize) {
+    maxProgSize = progSpaceSize;
     prgStore = prgBody;
     resetEditor();
 }
@@ -65,6 +68,12 @@ void injectLine(char* s, short num) {
         prgSize -= len;
     }
     len = strlen(s);
+    if (prgSize + len + 3 >= maxProgSize) {
+        outputCr();
+        outputConstStr(ID_COMMON_STRINGS, 13, NULL);
+        outputCr();
+        return;
+    }
     if (len > 0) {
         memmove((char*)(void*)p + len + 3, p, prgStore + prgSize - (char*)(void*)p);
         prgSize += len + 3;

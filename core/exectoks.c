@@ -111,9 +111,22 @@ short getArrayOffset(char letter) {
     return (vars[i].name == name) ? vars[i].value : -1;
 }
 
+char checkLowVarsMemory(short toAddBytes) {
+    if (((char*)(vars + numVars)) + arrayBytes + toAddBytes >= (char*)(calcStack + spInit - 5)) {
+        outputCr();
+        outputConstStr(ID_COMMON_STRINGS, 12, NULL);
+        outputCr();
+        return 1;
+    }
+    return 0;
+}
+
 void setVar(short name, numeric value) {
     char i = findVar(name);
     if (vars[i].name != name) {
+        if (checkLowVarsMemory(sizeof(varHolder))) {
+            return;
+        }
         if (i < numVars) {
             memmove(vars + i + 1, vars + i, sizeof(varHolder) * (numVars - i) + arrayBytes);
         }
@@ -332,6 +345,9 @@ void execDim(void) {
     }
     char pos = findVar(name);
     if (vars[pos].name == name) {
+        return;
+    }
+    if (checkLowVarsMemory(sizeof(varHolder) + len * itemSize)) {
         return;
     }
     setVar(name, arrayBytes | (itemSize == 1 ? 0x8000 : 0));

@@ -221,11 +221,11 @@ void preload(char* line, token* t) {
     }
 }
 
-void init(short dataSize, short lineSize) {
+void init(short dataSize, short lineSize, short progSize) {
     outputCr();
     outputConstStr(ID_COMMON_STRINGS, 0, NULL); // Miskatino vX.X
     outputCr();
-    initEditor(dataSpace + dataSize);
+    initEditor(dataSpace + dataSize, progSize);
     initTokenExecutor(dataSpace, dataSize);
     listLine = 1;
     listPage = 10;
