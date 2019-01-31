@@ -3,7 +3,7 @@
 
 #include "mytypes.h"
 
-void init(short dataSize, short lineSize);
+void init(short dataSize, short lineSize, short progSize);
 void dispatch();
 void processLine(char* line, token* t);
 

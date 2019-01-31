@@ -1,9 +1,9 @@
 #ifndef __TEXTUAL_H_
 #define __TEXTUAL_H_
 
-#define CONST_COMMON_STRINGS "Miskatino BASIC 1.5\ncode: \nvars: \nnext: \n"\
+#define CONST_COMMON_STRINGS "Miskatino BASIC 1.7\ncode: \nvars: \nnext: \n"\
     "BREAK\nEnd of code\nSaved\nLoaded\nbytes\nLoad failed\n"\
-    "Autorun in 1 sec\nCanceled!\n"
+    "Autorun in 1 sec\nCanceled!\nLow VARS mem\nLow PROG mem\n"
 
 #define CONST_PARSING_ERRORS "\nCmd or Var exp-d\nSymbol '=' exp-d\nName expected\n"\
     "Symbol ';' exp-d\nExtra chars at end\nUnexpected error\nNumber out of range\n"\

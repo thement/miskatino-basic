@@ -7,10 +7,11 @@
 #include "tokens.h"
 #include "extern.h"
 
+#define SERIAL Serial
 #define UART_SPEED 115200
 
-#define PROG_SPACE_SIZE 700
-#define VARS_SPACE_SIZE 300
+#define PROG_SPACE_SIZE 850
+#define VARS_SPACE_SIZE 150
 #define LINE_SIZE 40
 
 char extraCmdArgCnt[] = {2, 2};
@@ -26,17 +27,17 @@ char lineSpace[LINE_SIZE * 3];
 short filePtr;
 
 char sysGetc(void) {
-    return (Serial.available() > 0) ? (char) Serial.read() : 0;
+    return (SERIAL.available() > 0) ? (char) SERIAL.read() : 0;
 }
 
 void sysPutc(char c) {
     if (c == '\n') {
-      Serial.write('\r');
+      SERIAL.write('\r');
     } else if (c == '\b') {
-        Serial.write('\b');
-        Serial.write(' ');
+        SERIAL.write('\b');
+        SERIAL.write(' ');
     }
-    Serial.write(c);
+    SERIAL.write(c);
 }
 
 void sysEcho(char c) {
@@ -181,7 +182,7 @@ char storageOperation(void* data, short size) {
     short i;
     if (data == NULL) {
         if (size == 0) {
-            EEPROM.write(filePtr, storageChecksum(filePtr));
+            EEPROM.write(filePtr, filePtr > 4 ? storageChecksum(filePtr) : 0x55);
             return 1;
         } else {
             filePtr = 0;
@@ -210,10 +211,21 @@ char storageOperation(void* data, short size) {
     return 1;
 }
 
+void optionalProgramErase() {
+    pinMode(0, INPUT_PULLUP);
+    delay(50);
+    if (digitalRead(0) == LOW) {
+        EEPROM.write(0, 0);
+        EEPROM.write(0, 1);
+    }
+}
+
 void setup() {
-    Serial.begin(UART_SPEED);
-    while (!Serial);
-    init(VARS_SPACE_SIZE, LINE_SIZE);
+    optionalProgramErase();
+    SERIAL.begin(UART_SPEED);
+    pinMode(0, INPUT_PULLUP);
+    while (!SERIAL);
+    init(VARS_SPACE_SIZE, LINE_SIZE, PROG_SPACE_SIZE);
 }
 
 void loop() {
