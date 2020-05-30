@@ -1,5 +1,6 @@
 #include <EEPROM.h>
 #include <avr/pgmspace.h>
+#include <Wire.h>
 
 #include "main.h"
 #include "mytypes.h"
@@ -16,7 +17,7 @@
 
 char extraCmdArgCnt[] = {2, 2};
 
-char extraFuncArgCnt[] = {1, 1, 1};
+char extraFuncArgCnt[] = {1, 1, 1, 1, 2, 3};
 
 static const char commonStrings[] PROGMEM = CONST_COMMON_STRINGS;
 static const char parsingErrors[] PROGMEM = CONST_PARSING_ERRORS;
@@ -142,6 +143,12 @@ short extraFunctionByHash(numeric h) {
             return 1;
         case 0x01CF: // ADC
             return 2;
+	case 0x0254: // I2CR
+            return 3;
+	case 0x0251: // I2CW
+            return 4;
+	case 0x0490: // I2CW2
+            return 5;
         default:
             return -1;
     }
@@ -166,6 +173,33 @@ numeric extraFunction(char cmd, numeric args[]) {
             return pinRead(args[0]);
         case 2:
             return adcRead(args[0]);
+        case 3: {
+	    Wire.requestFrom(args[0], 1, true);
+	    if (!Wire.available()) {
+		Serial.println('!');
+		return -1;
+	    }
+	    return Wire.read();
+	}
+        case 4: {
+	    Wire.beginTransmission(args[1]);
+	    Wire.write(args[0]);
+	    char err = Wire.endTransmission();
+	    if (err != 0) {
+		Serial.println('!');
+	    }
+	    return err;
+	}
+        case 5: {
+	    Wire.beginTransmission(args[2]);
+	    Wire.write(args[1]);
+	    Wire.write(args[0]);
+	    char err = Wire.endTransmission();
+	    if (err != 0) {
+		Serial.println('!');
+	    }
+	    return err;
+	}
     }
     return 0;
 }
@@ -223,6 +257,7 @@ void optionalProgramErase() {
 void setup() {
     optionalProgramErase();
     SERIAL.begin(UART_SPEED);
+    Wire.begin();
     pinMode(0, INPUT_PULLUP);
     while (!SERIAL);
     init(VARS_SPACE_SIZE, LINE_SIZE, PROG_SPACE_SIZE);
